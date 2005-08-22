@@ -1,0 +1,31 @@
+#!/bin/csh
+
+#
+# Configuration.default
+#
+# Source this file from any csh script to set the
+# env variables
+#
+
+# install directory
+setenv CACHEINSTALLDIR		/usr/local/mgi/live/dbutils/snpcacheload
+
+# data directory
+setenv CACHEDATADIR		/data/loads/mgi/snpcacheload/output
+
+# logs directory
+setenv CACHELOGSDIR		/data/loads/mgi/snpcacheload/logs
+
+# schema product directory
+setenv SCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
+
+source $SCHEMADIR/Configuration
+
+setenv DSQUERY	$DBSERVER
+setenv MGD	$DBNAME
+
+# values to create ACC_Accession records
+setenv LOGICALDB_NAME   RefSeq
+setenv MGITYPE_NAME  "SNP Marker"
+
+

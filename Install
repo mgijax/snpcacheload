@@ -1,0 +1,12 @@
+#!/bin/csh
+
+#
+# Install
+#
+# Installs product "snpcacheload" in the appropriate directory
+#
+# 1. cvs export -r snpcacheload-#-#-# -d snpcacheload-#-#-# snpcacheload
+# 2. ln -s snpcacheload-#-#-# snpcacheload
+# 3. Copy Configuration.default Configuration
+# 4. Edit Configuration
+#

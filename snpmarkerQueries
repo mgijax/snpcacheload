@@ -1,0 +1,62 @@
+select a.accid as rsId, m.entrezGeneId, m.fxnClass, 
+            m.chromosome, m.startCoord, m.refseqNucleotide, 
+            m.refseqProtein, m.contig_allele, m.residue, 
+            m.aa_position, m.reading_frame 
+            into #radar 
+            from MGI_SNP_Marker m, MGI_SNP_Accession a 
+            where m._ConsensusSNP_key = a._Object_key 
+            and a.objectType = "Consensus SNP" 
+            and a.logicalDB = "RefSNP"
+18968 records
+
+select r.*, a._Object_key, v._term_key as _Fxn_key
+            into #radarMkrFxn
+            from #radar r, mgd_sc..ACC_Accession a, mgd_sc..VOC_Term v
+            where r.entrezGeneId = a.accid
+            and a._LogicalDB_key = 55
+            and a._MGIType_key = 2
+            and a.preferred = 1
+            and v._Vocab_key = 45
+            and r.fxnClass = v.term
+16237
+
+select r.*, a._Object_key as _ConsensusSnp_key 
+            into #rdrMkrFxnCSKy 
+            from #radarMkrFxn r, mgd_sc..ACC_Accession a 
+            where _MGIType_key = 29 
+            and preferred = 1 
+            and r.rsId = a.accid
+81185 (incorrect, need to do a migration)
+
+
+need to split this one apart
+select r.*, f._Feature_key
+            from #rdrMkrFxnCSKy r, mgd_sc..MAP_Coord_Feature f,
+            mgd_sc..MAP_Coordinate m, mgd_sc..MRK_Chromosome c
+            where r._ConsensusSnp_key = f._Object_key
+            and f._MGIType_key = 29
+            and f._Map_key = m._Map_key
+            and m._MGIType_key = 27
+            and m._Object_key = c._Chromosome_key
+            and c._Organism_key = 1
+            and r.chromosome = c.chromosome
+            and r.startCoord = f.startCoordinate
+
+Next two are previous one split in two
+select f._Feature_key, c.chromosome, f.startCoordinate, f._Object_key
+into #features
+from mgd_sc..MAP_Coord_Feature f, mgd_sc..MAP_Coordinate m,
+mgd_sc..MRK_Chromosome c
+where f._MGIType_key = 29
+and f._Map_key = m._Map_key
+and m._MGIType_key = 27
+and m._Object_key = c._Chromosome_key
+and c._Organism_key = 1
+33170 
+
+select r.*, f._Feature_key
+from #rdrMkrFxnCSKy r, #features f
+where r._ConsensusSnp_key = f._Object_key
+and r.chromosome = f.chromosome
+and r.startCoord = f.startCoordinate
+81185 (incorrect, need to do a migration)
