@@ -1,3 +1,10 @@
+TAG: snpcacheload-1-0-1
+DATE: 09/01/2005
+STAFF: sc
+RELEASE: dev
+CHANGES: added commenting and pulled environ var
+   creation out of wrappers and into Configuration 
+
 TAG: snpcacheload-1-0-0
 DATE: 08/22/2005
 STAFF: sc
