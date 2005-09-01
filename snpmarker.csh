@@ -16,9 +16,6 @@ setenv LOG	${CACHELOGSDIR}/`basename $0`.log
 rm -rf ${LOG}
 touch ${LOG}
 
-setenv MRKR_TABLE	SNP_ConsensusSnp_Marker
-setenv ACC_TABLE	ACC_Accession
-
 date | tee -a ${LOG}
 
 # Create the bcp file
