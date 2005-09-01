@@ -19,13 +19,17 @@ setenv CACHELOGSDIR		/data/loads/mgi/snpcacheload/logs
 # schema product directory
 setenv SCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
 
+# source the schema configuration to get more environment vars
 source $SCHEMADIR/Configuration
 
-setenv DSQUERY	$DBSERVER
-setenv MGD	$DBNAME
+setenv RADAR_DBNAME	radar
 
-# values to create ACC_Accession records
-setenv LOGICALDB_NAME   RefSeq
-setenv MGITYPE_NAME  "SNP Marker"
+# values for snpmarker.csh/snpmarker.py
+# for refseqs associated with SNP_ConsensusSnp_Marker objects
+setenv REFSEQ_LOGICALDB_NAME	RefSeq
+setenv MRKR_MGITYPE_NAME	"SNP Marker"
+setenv MRKR_TABLE	SNP_ConsensusSnp_Marker
+setenv ACC_TABLE ACC_Accession
 
-
+# values for snpcoord.csh/snpcoord.py
+setenv COORD_CACHE_TABLE	SNP_Coord_Cache
