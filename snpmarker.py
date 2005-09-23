@@ -156,14 +156,14 @@ def createBCP():
 	'and a._LogicalDB_key = 55 ' + \
 	'and a._MGIType_key = 2 ' + \
 	'and a.preferred = 1 ' + \
-	'and v._Vocab_key = 45 ' + \
+	'and v._Vocab_key = 48 ' + \
 	'and r.fxnClass = v.term')
 
     # get the _ConsensusSnp_key
     cmds.append('select r.*, a._Object_key as _ConsensusSnp_key ' + \
 	'into #rmf_cskey ' + \
 	'from #r_mkrfxn r, ACC_Accession a ' + \
-	'where _MGIType_key = 29 ' + \
+	'where _MGIType_key = 30 ' + \
 	'and preferred = 1 ' + \
 	'and r.rsId = a.accid')
 
@@ -172,7 +172,7 @@ def createBCP():
 	'from #rmf_cskey r, MAP_Coord_Feature f, ' + \
 	'MAP_Coordinate m, MRK_Chromosome c ' + \
 	'where r._ConsensusSnp_key = f._Object_key ' + \
-	'and f._MGIType_key = 29 ' + \
+	'and f._MGIType_key = 30 ' + \
 	'and f._Map_key = m._Map_key ' + \
 	'and m._MGIType_key = 27 ' + \
 	'and m._Object_key = c._Chromosome_key ' + \
