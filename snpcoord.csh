@@ -24,7 +24,7 @@ ${CACHEINSTALLDIR}/snpcoord.py | tee -a ${LOG}
 
 # Allow bcp into database and truncate tables
 
-#${DBUTILSBINDIR}/turnonbulkcopy.csh ${DBSERVER} ${DBNAME} | tee -a ${LOG}
+${DBUTILSBINDIR}/turnonbulkcopy.csh ${DBSERVER} ${DBNAME} | tee -a ${LOG}
 ${SCHEMADIR}/table/${COORD_CACHE_TABLE}_truncate.object | tee -a ${LOG}
 
 # Drop indexes
