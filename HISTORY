@@ -1,3 +1,11 @@
+DATE: 09/23/2005
+STAFF: sc
+RELEASE: dev
+CHANGES:
+1) snpcoord.py - updated keys since OMIM release, 
+     updated to handle new inMultiCoord attribute
+2) snpmarker.py - updated keys since OMIM release
+
 TAG: snpcacheload-1-0-1
 DATE: 09/01/2005
 STAFF: sc
