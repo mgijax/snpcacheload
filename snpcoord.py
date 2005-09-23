@@ -44,28 +44,47 @@ def createBCP():
 
     cmd = 'select distinct ' + \
 	  'mcf._Object_key, mcf._Feature_key, mcf.startCoordinate, mcf.strand, ' + \
-	  'c.chromosome, s._varClass_key, s.allele_summary, s.iupacCode ' + \
+	  'c.chromosome, c.sequenceNum, s._varClass_key, ' + \
+	  's.allele_summary, s.iupacCode ' + \
 	  'from MAP_Coordinate mc, MAP_Coord_Feature mcf, ' + \
 	  'MRK_Chromosome c, SNP_ConsensusSnp s ' + \
 	  'where mc._MGIType_key = 27 ' + \
 	  'and mc._Object_key = c._Chromosome_key ' + \
 	  'and mc._Map_key = mcf._Map_key ' + \
-	  'and mcf._MGIType_key = 29 ' + \
-	  'and mcf._Object_key = s._ConsensusSnp_key '
-
+	  'and mcf._MGIType_key = 30 ' + \
+	  'and mcf._Object_key = s._ConsensusSnp_key ' + \
+	  'order by mcf._Object_key '
     results = db.sql(cmd, 'auto')
-
+    # create a dictionary of cs keys to there values
+    # so we can easily determine multi coord cs
+    coordDict = {}
     for r in results:
-	outBCP.write(str(r['_Object_key']) + DL + \
-	    str(r['_Feature_key']) + DL + \
-	    r['chromosome'] + DL + \
-	    str(r['startCoordinate']) + DL + \
-	    str(r['strand']) + DL + \
-	    str(r['_varClass_key']) + DL + \
-	    str(r['allele_summary']) + DL + \
-	    str(r['iupacCode']) + DL + \
-	    str(userKey) + DL + str(userKey) + DL + \
-	    loaddate + DL + loaddate + NL)
+	currentCSKey = r['_Object_key']
+	if coordDict.has_key(currentCSKey):
+	    valueList = coordDict[currentCSKey]
+	    valueList.append(r)
+	    coordDict[currentCSKey] = valueList
+	else:
+	    coordDict[currentCSKey] = [r]
+    # create bcp file determing multi-coord CS as we go
+    for csKey in coordDict.keys():
+	resultList = coordDict[csKey]
+	isMultiCoord = 0
+	if len(resultList) > 1:
+	    isMultiCoord = 1
+	for r in resultList:
+	    outBCP.write(str(r['_Object_key']) + DL + \
+		str(r['_Feature_key']) + DL + \
+		str(r['chromosome']) + DL + \
+		str(r['sequenceNum']) + DL + \
+		str(r['startCoordinate']) + DL + \
+		str(isMultiCoord) + DL + \
+		str(r['strand']) + DL + \
+		str(r['_varClass_key']) + DL + \
+		str(r['allele_summary']) + DL + \
+		str(r['iupacCode']) + DL + \
+		str(userKey) + DL + str(userKey) + DL + \
+		loaddate + DL + loaddate + NL)
 
     outBCP.close()
 
@@ -75,7 +94,7 @@ def createBCP():
 
 userKey = loadlib.verifyUser(os.environ['DBUSER'], 1, None)
 
-print '%s' % mgi_utils.date()
+print 'snpcoord.py start: %s' % mgi_utils.date()
 createBCP()
-print '%s' % mgi_utils.date()
+print 'snpcoord.py end: %s' % mgi_utils.date()
 
