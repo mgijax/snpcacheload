@@ -1,3 +1,11 @@
+DATE: 09/25/2005
+STAFF: sc
+RELEASE: dev
+CHANGES:
+1) snpcoord.py - updated alleleSummary column name
+   wrapped db.sql in try/except
+2) snpmarker.py - wrapped db.sql in try/except
+
 DATE: 09/23/2005
 STAFF: sc
 RELEASE: dev
