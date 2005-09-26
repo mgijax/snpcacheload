@@ -12,6 +12,8 @@
 #         2) Configuration (see list below)
 # Outputs: 1) log file
 #          2) bcp file
+# Exit Codes: 1 if database connection or sql error
+#
 # History
 #
 # 08/17/2005	sc
@@ -24,6 +26,10 @@ import os
 import db
 import mgi_utils
 import loadlib
+
+# database errors
+DB_ERROR = 'A database error occured: '
+DB_CONNECT_ERROR = 'Connection to the database failed: '
 
 NL = '\n'
 DL = '|'
@@ -45,7 +51,7 @@ def createBCP():
     cmd = 'select distinct ' + \
 	  'mcf._Object_key, mcf._Feature_key, mcf.startCoordinate, mcf.strand, ' + \
 	  'c.chromosome, c.sequenceNum, s._varClass_key, ' + \
-	  's.allele_summary, s.iupacCode ' + \
+	  's.alleleSummary, s.iupacCode ' + \
 	  'from MAP_Coordinate mc, MAP_Coord_Feature mcf, ' + \
 	  'MRK_Chromosome c, SNP_ConsensusSnp s ' + \
 	  'where mc._MGIType_key = 27 ' + \
@@ -81,7 +87,7 @@ def createBCP():
 		str(isMultiCoord) + DL + \
 		str(r['strand']) + DL + \
 		str(r['_varClass_key']) + DL + \
-		str(r['allele_summary']) + DL + \
+		str(r['alleleSummary']) + DL + \
 		str(r['iupacCode']) + DL + \
 		str(userKey) + DL + str(userKey) + DL + \
 		loaddate + DL + loaddate + NL)
@@ -95,6 +101,16 @@ def createBCP():
 userKey = loadlib.verifyUser(os.environ['DBUSER'], 1, None)
 
 print 'snpcoord.py start: %s' % mgi_utils.date()
-createBCP()
+try:
+    createBCP()
+except db.connection_exc, message:
+    error = '%s%s' % (DB_CONNECT_ERROR, message)
+    sys.stderr.write(message)
+    sys.exit(message)
+except db.error, message:
+    error = '%s%s' % (DB_ERROR, message)
+    sys.stderr.write(message)
+    sys.exit(message)
+
 print 'snpcoord.py end: %s' % mgi_utils.date()
 
