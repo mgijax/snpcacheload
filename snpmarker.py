@@ -34,6 +34,10 @@ import loadlib
 NL = '\n'
 DL = '|'
 
+# database errors
+DB_ERROR = 'A database error occured: '
+DB_CONNECT_ERROR = 'Connection to the database failed: '
+
 #
 # get values from environment
 #
@@ -94,6 +98,7 @@ def setup():
 	    'where name = "%s" ' % snpMrkrMGIType)
     cmds.append('select max(_Accession_key) ' + \
 	    'from ACC_Accession')
+    
     results = db.sql(cmds, 'auto')
     refSeqLdbKey = results[0][0]['_LogicalDB_key']
     snpMkrmgiTypeKey = results[1][0]['_MGIType_key']
@@ -245,8 +250,18 @@ def createAccession(accid, objectKey):
 userKey = loadlib.verifyUser(user, 1, None)
 
 print '%s' % mgi_utils.date()
-setup()
-deleteAccessions()
-createBCP()
+try:
+    setup()
+    deleteAccessions()
+    createBCP()
+except db.connection_exc, message:
+    error = '%s%s' % (DB_CONNECT_ERROR, message)
+    sys.stderr.write(message)
+    sys.exit(message)
+except db.error, message:
+    error = '%s%s' % (DB_ERROR, message)
+    sys.stderr.write(message)
+    sys.exit(message)
+
 print '%s' % mgi_utils.date()
 
