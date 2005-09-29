@@ -1,11 +1,22 @@
 #!/bin/csh -fx
 
 #
+# Program: snpmarker.csh
+#
+# Purpose:
+#
+#       Script for loading
+#	SNP_ConsensusSnp_Marker table
+#       with dbSNP determined snp to
+#       marker associations
+#
+# Usage:
+#
 # Usage:  snpmarker.csh
 #
 # History
 #
-# sc	08/17/2005
+# sc    08/17/2005
 #
 
 cd `dirname $0` && source ./Configuration

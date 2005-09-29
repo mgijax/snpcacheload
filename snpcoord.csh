@@ -1,11 +1,21 @@
 #!/bin/csh -fx
+#!/bin/csh -fx
 
+#
+# Program: snpcoord.csh
+#
+# Purpose:
+#
+#       Script for loading
+#       SNP_Coord_Cache table
+#
+# Usage:
 #
 # Usage:  snpcoord.csh
 #
 # History
 #
-# sc	08/17/2005
+# sc    08/17/2005
 #
 
 cd `dirname $0` && source ./Configuration

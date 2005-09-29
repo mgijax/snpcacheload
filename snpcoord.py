@@ -24,18 +24,27 @@
 import sys
 import os
 import db
+
+# MGI python libraries
 import mgi_utils
 import loadlib
+
+
+# constants
+NL = '\n'
+DL = '|'
 
 # database errors
 DB_ERROR = 'A database error occured: '
 DB_CONNECT_ERROR = 'Connection to the database failed: '
 
-NL = '\n'
-DL = '|'
 table = os.environ['COORD_CACHE_TABLE']
 userKey = 0
 loaddate = loadlib.loaddate
+
+#
+# Functions
+#
 
 def createBCP():
     # Purpose: creates SNP_Coord_Cache bcp file
