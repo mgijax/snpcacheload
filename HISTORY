@@ -1,3 +1,11 @@
+TAG: snpcacheload-1-0-2
+DATE: 09/29/2005
+STAFF: dbm
+RELEASE: dev
+CHANGES:
+ 1) Added snpmrklocus.py and snpmrkwithin.py to handle the
+    association of RefSNPs to MGI markers
+
 DATE: 09/28/2005
 STAFF: sc
 RELEASE: dev
