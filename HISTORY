@@ -1,3 +1,10 @@
+DATE: 09/28/2005
+STAFF: sc
+RELEASE: dev
+CHANGES:
+1) snpmarker.py - added union of VOC_term and
+   MGI_Translation to resolve all fxn classes
+
 DATE: 09/25/2005
 STAFF: sc
 RELEASE: dev
