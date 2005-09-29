@@ -77,7 +77,7 @@ def setup():
     # Returns: nothing
     # Assumes: nothing
     # Effects: queries a database
-    # Throws:  nothing
+    # Throws:  db.error, db.connection_exc
     
     global refSeqLdbKey
     global snpMkrmgiTypeKey
@@ -103,16 +103,13 @@ def setup():
     refSeqLdbKey = results[0][0]['_LogicalDB_key']
     snpMkrmgiTypeKey = results[1][0]['_MGIType_key']
     acckey = results[2][0]['']
-    print "ldbkey %s" % refSeqLdbKey
-    print "mgiTypeKey %s" % snpMkrmgiTypeKey
-    print "accKey %s" % acckey
 
 def deleteAccessions():
     # Purpose: delete accession records 
     # Returns: nothing
     # Assumes: nothing
-    # Effects: deletes records from a database
-    # Throws:  nothing
+    # Effects: queries a database, deletes records from a database
+    # Throws:  db.error, db.connection_exc
     print 'Deleting Accessions'
 
     cmds = []
@@ -134,8 +131,8 @@ def createBCP():
     # Purpose: creates SNP_ConsensusSnp_Marker and ACC_Accession bcp files
     # Returns: nothing
     # Assumes: nothing
-    # Effects: creates files in the filesystem
-    # Throws:  nothing
+    # Effects: queries a database, creates files in the filesystem
+    # Throws:  db.error, db.connection_exc
 
     print 'Creating %s.bcp...%s' % (snpMrkrTable, mgi_utils.date())
     print 'and  %s.bcp...%s' % (accTable, mgi_utils.date())
@@ -162,14 +159,24 @@ def createBCP():
 	'and a._MGIType_key = 2 ' + \
 	'and a.preferred = 1 ' + \
 	'and v._Vocab_key = 48 ' + \
-	'and r.fxnClass = v.term')
+	'and r.fxnClass = v.term '
+	'union ' + \
+	'select r.*, a._Object_key as _Marker_key, ' + \
+        't._Object_key as _Fxn_key ' + \
+        'from #radar r, ACC_Accession a, MGI_Translation t ' + \
+        'where r.entrezGeneId = a.accid ' + \
+        'and a._LogicalDB_key = 55 ' + \
+        'and a._MGIType_key = 2 ' + \
+        'and a.preferred = 1 ' + \
+        'and t._TranslationType_key = 1010 ' + \
+        'and r.fxnClass = t.badname')
 
     # get the _ConsensusSnp_key
     cmds.append('select r.*, a._Object_key as _ConsensusSnp_key ' + \
 	'into #rmf_cskey ' + \
 	'from #r_mkrfxn r, ACC_Accession a ' + \
-	'where _MGIType_key = 30 ' + \
-	'and preferred = 1 ' + \
+	'where a._MGIType_key = 30 ' + \
+	'and a.preferred = 1 ' + \
 	'and r.rsId = a.accid')
 
     # get the _Feature_key
@@ -249,7 +256,7 @@ def createAccession(accid, objectKey):
 
 userKey = loadlib.verifyUser(user, 1, None)
 
-print '%s' % mgi_utils.date()
+print 'snpmarker.py start: %s' % mgi_utils.date()
 try:
     setup()
     deleteAccessions()
@@ -263,5 +270,5 @@ except db.error, message:
     sys.stderr.write(message)
     sys.exit(message)
 
-print '%s' % mgi_utils.date()
+print 'snpmarker.py end: %s' % mgi_utils.date()
 
