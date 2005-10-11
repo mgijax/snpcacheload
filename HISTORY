@@ -1,3 +1,11 @@
+TAG: snpcacheload-3-4-0-1
+DATE: 10/11/2005
+STAFF: dbm
+RELEASE: dev
+CHANGES:
+ 1) Fixed upper/lower case problem with locus region constants in
+    snpmrklocus.py
+
 TAG: snpcacheload-1-0-2
 DATE: 09/29/2005
 STAFF: dbm
