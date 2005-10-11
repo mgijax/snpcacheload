@@ -158,7 +158,7 @@ def createBCP():
 	'and a._LogicalDB_key = 55 ' + \
 	'and a._MGIType_key = 2 ' + \
 	'and a.preferred = 1 ' + \
-	'and v._Vocab_key = 48 ' + \
+	'and v._Vocab_key = 49 ' + \
 	'and r.fxnClass = v.term '
 	'union ' + \
 	'select r.*, a._Object_key as _Marker_key, ' + \
@@ -177,7 +177,7 @@ def createBCP():
 	'from #r_mkrfxn r, ACC_Accession a ' + \
 	'where a._MGIType_key = 30 ' + \
 	'and a.preferred = 1 ' + \
-	'and r.rsId = a.accid')
+	'and r.rsId  = substring(a.accid, 3, 15)' )
 
     # get the _Feature_key
     cmds.append('select r.*, f._Feature_key ' + \
