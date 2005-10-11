@@ -1,3 +1,11 @@
+TAG: snpcacheload-3-4-0-2
+DATE: 10/11/2005
+STAFF: sc
+RELEASE: dev
+CHANGES:
+1) snpmarker.py - updated vocab key and now do substring(mgd..ACC_Accession.accid, 3, 10)
+   before joining with radar..MGI_SNP_MArker.accid because we prepended with 'rs' and 'ss'
+
 TAG: snpcacheload-3-4-0-1
 DATE: 10/11/2005
 STAFF: dbm
