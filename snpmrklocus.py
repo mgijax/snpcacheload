@@ -67,9 +67,9 @@ CRT = '\n'
 NULL = ''
 
 FNCT_CLASS_VOCAB = 'SNP Function Class'
-LOCUS_REGION_TERM = 'locus-region'
-UPSTREAM_TERM = 'locus-region (upstream)'
-DOWNSTREAM_TERM = 'locus-region (downstream)'
+LOCUS_REGION_TERM = 'Locus-Region'
+UPSTREAM_TERM = 'Locus-Region (upstream)'
+DOWNSTREAM_TERM = 'Locus-Region (downstream)'
 
 
 #
