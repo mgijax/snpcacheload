@@ -239,10 +239,11 @@ def createAccession(accid, objectKey):
 
     global acckey
     acckey = acckey + 1
+    prefixpart, numericpart = accessionlib.split_accnum(accid)
     accBCP.write(str(acckey) + DL + \
 	str(accid) + DL + \
-	"" + DL + \
-	"" + DL + \
+	str(prefixpart) + DL + \
+	str(numericpart) + DL + \
 	str(refSeqLdbKey) + DL + \
 	str(objectKey) + DL + \
 	str(snpMkrmgiTypeKey) + DL + \
