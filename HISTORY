@@ -1,3 +1,10 @@
+TAG: snpcacheload-3-4-0-3
+DATE: 10/15/2005
+STAFF: sc
+RELEASE: dev
+CHANGES:
+1) snpmarker.py - added numericpart and prefixpart to ACC_Accession
+
 TAG: snpcacheload-3-4-0-2
 DATE: 10/11/2005
 STAFF: sc
