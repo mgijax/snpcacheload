@@ -29,6 +29,7 @@ import string
 # MGI python libraries
 import mgi_utils
 import loadlib
+import accessionlib
 
 # constants
 NL = '\n'
