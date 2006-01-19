@@ -1,3 +1,21 @@
+TAG: snpcacheload-tr7203-1
+DATE: 1/19/2006
+STAFF: sc
+RELEASE:
+CHANGES:
+1) Configuration.defaults - added MAX_BCP_LINES
+  and MAX_QUERY_BATCH
+2) snpcoord.py, snpmarker.py, snpmrkwithin.py - 
+   removed created/modified by/date from bcp file
+3) snpmarker.csh - processes multiple snpmrkwithin.py bcp files
+4) snpmrkwithin.py - now creates multiple  bcp files based on 
+   a configurable number of rows. This is because bcp executed
+   from a shell script doesn't recognize files > 2Gb
+   - now processes in batches (configurable size) of 
+   _ConsensusSnp_keys's instead of by chromosome, this is
+   because of python memory errors when query is too large
+   
+
 TAG: snpcacheload-tr7203-BP
 DATE: 1/10/2006
 STAFF: sc
