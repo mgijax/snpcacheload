@@ -55,6 +55,7 @@ import os
 import string
 import db
 import loadlib
+import time
 
 #
 #  CONSTANTS
@@ -313,11 +314,13 @@ def process():
 	    fpSnpMrk.close()
 	    openBCPFile()
             bcpLines = 0
-        print 'Get SNP/marker pairs for _ConsensusSnp_key %s - %s' % (lowCSKey, highCSKey -1) 
+        print 'Querying for _ConsensusSnp_key %s - %s' % (lowCSKey, highCSKey -1) 
+	print 'Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
+                time.localtime(time.time()))
         sys.stdout.flush()
-  
         results = db.sql(QUERY % (lowCSKey, highCSKey), 'auto')
-
+	print 'Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
+                time.localtime(time.time()))
         print 'Add ' + str(len(results)) + ' annotations to bcp file'
         sys.stdout.flush()
         total = total + len(results)
@@ -325,6 +328,10 @@ def process():
         #
         #  Process each row of the results set for the current chromosome.
         #
+	print 'Writing to bcp file'
+	print 'Write start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
+                time.localtime(time.time()))
+	sys.stdout.flush()
         for r in results:
             snpKey = r['_ConsensusSnp_key']
             markerKey = r['_Marker_key']
@@ -370,6 +377,9 @@ def process():
                            NULL + DL + NULL + CRT)
 
             primaryKey = primaryKey + 1
+	print 'Write end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
+                time.localtime(time.time()))
+	sys.stdout.flush() 
 	lowCSKey = highCSKey
 	highCSKey = highCSKey + maxQueryBatch
 
