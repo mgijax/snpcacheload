@@ -39,8 +39,6 @@ DB_ERROR = 'A database error occured: '
 DB_CONNECT_ERROR = 'Connection to the database failed: '
 
 table = os.environ['COORD_CACHE_TABLE']
-userKey = 0
-loaddate = loadlib.loaddate
 
 #
 # Functions
@@ -97,17 +95,13 @@ def createBCP():
 		str(r['strand']) + DL + \
 		str(r['_varClass_key']) + DL + \
 		str(r['alleleSummary']) + DL + \
-		str(r['iupacCode']) + DL + \
-		str(userKey) + DL + str(userKey) + DL + \
-		loaddate + DL + loaddate + NL)
+		str(r['iupacCode']) + NL)
 
     outBCP.close()
 
 #
 # Main Routine
 #
-
-userKey = loadlib.verifyUser(os.environ['DBUSER'], 1, None)
 
 print 'snpcoord.py start: %s' % mgi_utils.date()
 try:

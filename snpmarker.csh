@@ -15,9 +15,9 @@
 #
 # History
 #
-# sc	08/17/2005
+# sc	08/17/2005 - created
 # dbm	09/28/2005 - Added snpmrklocus.py & snpmrkwithin.py
-#
+# sc    01/2005 - process multiple snpmrkwithin.bcp files
 
 cd `dirname $0` && source ./Configuration
 
@@ -98,14 +98,15 @@ if ( ${IN_SYNC} == "yes" ) then
 
     echo "" | tee -a ${LOG}
     date | tee -a ${LOG}
-    echo "Calling snpmrklocus.py" | tee -a ${LOG}
     echo "Drop indexes on ${SNP_MRK_TABLE} table" | tee -a ${LOG}
     ${SCHEMADIR}/index/${SNP_MRK_TABLE}_drop.object | tee -a ${LOG}
-
     echo "" | tee -a ${LOG}
-    date | tee -a ${LOG}
-    echo "Load bcp file into ${SNP_MRK_TABLE} table" | tee -a ${LOG}
-    cat ${DBPASSWORDFILE} | bcp ${DBNAME}..${SNP_MRK_TABLE} in ${SNP_MRK_FILE} -c -t\| -S${DBSERVER} -U${DBUSER} | tee -a ${LOG}
+    
+    foreach i (${SNP_MRK_FILE}*)
+	date | tee -a ${LOG}
+	echo "Load bcp file into ${SNP_MRK_TABLE} table" | tee -a ${LOG}
+	cat ${DBPASSWORDFILE} | bcp ${DBNAME}..${SNP_MRK_TABLE} in $i -c -t\| -S${DBSERVER} -U${DBUSER} | tee -a ${LOG}
+    end
 
     echo "" | tee -a ${LOG}
     date | tee -a ${LOG}

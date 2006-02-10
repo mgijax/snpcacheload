@@ -219,9 +219,7 @@ def createBCP():
 	    str(allele) + DL + \
 	    str(residue) + DL + \
 	    str(aa_pos) + DL + \
-	    str(r_frame) + DL + \
-	    str(userKey) + DL + str(userKey) + DL + \
-	    loaddate + DL + loaddate + NL)
+	    str(r_frame) + NL)
 	nuclId = r['refseqNucleotide']
 	protId = r['refseqProtein']
 	if nuclId != None:
