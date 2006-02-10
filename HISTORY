@@ -1,3 +1,9 @@
+TAG: snpcacheload-3-4-3-1
+DATE: 02/10/2006
+STAFF: sc
+RELEASE: 3.43
+CHANGES: merge tr7392 branch to trunk
+
 TAG: snpcacheload-tr7392-2
 DATE: 2/07/2006
 STAFF: sc
