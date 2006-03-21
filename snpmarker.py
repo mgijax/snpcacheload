@@ -42,7 +42,7 @@ DB_CONNECT_ERROR = 'Connection to the database failed: '
 #
 # get values from environment
 #
-snpMrkrTable = os.environ['MRKR_TABLE']
+snpMrkrTable = os.environ['SNP_MRK_TABLE']
 accTable = os.environ['ACC_TABLE']
 refSeqLdbKey = os.environ['REFSEQ_LOGICALDB_KEY']
 snpMkrMgiTypeKey = os.environ['SNPMRKR_MGITYPE_KEY']
