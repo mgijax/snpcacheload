@@ -9,18 +9,18 @@
 
 # install directory
 setenv CACHEINSTALLDIR		/usr/local/mgi/live/dbutils/snpcacheload
+# output dir
+setenv CACHEDIR /data/loads/mgi/snpcacheload_test
 
 # data directory
-setenv CACHEDATADIR		/data/loads/mgi/snpcacheload/output
+setenv CACHEDATADIR             ${CACHEDIR}/output
 
 # logs directory
-setenv CACHELOGSDIR		/data/loads/mgi/snpcacheload/logs
+setenv CACHELOGSDIR             ${CACHEDIR}/logs
 
-# mgd schema product directory
-setenv MGD_DBSCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
-
-# snp schema product directory
-setenv SNP_DBSCHEMADIR            /usr/local/mgi/live/dbutils/snp/snpdbschema
+# schema product directories
+setenv MGD_DBSCHEMADIR          /home/sc/snp2/dbutils/mgd/mgddbschema
+setenv SNP_DBSCHEMADIR          /home/sc/snp2/dbutils/snp/snpdbschema
 
 # source the schema configuration to get more environment vars
 source $MGD_DBSCHEMADIR/Configuration
