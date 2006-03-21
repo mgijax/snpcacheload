@@ -39,28 +39,28 @@ ${DBUTILSBINDIR}/turnonbulkcopy.csh ${SNP_DBSERVER} ${SNP_DBNAME} | tee -a ${LOG
 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
-echo "Truncate ${MRKR_TABLE} table" | tee -a ${LOG}
-${SNP_DBSCHEMADIR}/table/${MRKR_TABLE}_truncate.object | tee -a ${LOG}
+echo "Truncate ${SNP_MRK_TABLE} table" | tee -a ${LOG}
+${SNP_DBSCHEMADIR}/table/${SNP_MRK_TABLE}_truncate.object | tee -a ${LOG}
 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
-echo "Drop indexes on ${MRKR_TABLE} table" | tee -a ${LOG}
-${SNP_DBSCHEMADIR}/index/${MRKR_TABLE}_drop.object | tee -a ${LOG}
+echo "Drop indexes on ${SNP_MRK_TABLE} table" | tee -a ${LOG}
+${SNP_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_drop.object | tee -a ${LOG}
 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
-echo "Load bcp file into ${MRKR_TABLE} table" | tee -a ${LOG}
-cat ${DBPASSWORDFILE} | bcp ${DBNAME}..${MRKR_TABLE} in ${MRKR_TABLE}.bcp -c -t\| -S${SNP_DBSERVER} -U${SNP_DBUSER} | tee -a ${LOG}
+echo "Load bcp file into ${SNP_MRK_TABLE} table" | tee -a ${LOG}
+cat ${DBPASSWORDFILE} | bcp ${DBNAME}..${SNP_MRK_TABLE} in ${SNP_MRK_TABLE}.bcp -c -t\| -S${SNP_DBSERVER} -U${SNP_DBUSER} | tee -a ${LOG}
 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
-echo "Create indexes on ${MRKR_TABLE} table" | tee -a ${LOG}
-${SNP_DBSCHEMADIR}/index/${MRKR_TABLE}_create.object | tee -a ${LOG}
+echo "Create indexes on ${SNP_MRK_TABLE} table" | tee -a ${LOG}
+${SNP_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_create.object | tee -a ${LOG}
 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
-echo "Update statistics on ${MRKR_TABLE} table" | tee -a ${LOG}
-${DBUTILSBINDIR}/updateStatistics.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${MRKR_TABLE} | tee -a ${LOG}
+echo "Update statistics on ${SNP_MRK_TABLE} table" | tee -a ${LOG}
+${DBUTILSBINDIR}/updateStatistics.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${SNP_MRK_TABLE} | tee -a ${LOG}
 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}

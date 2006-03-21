@@ -16,29 +16,38 @@ setenv CACHEDATADIR		/data/loads/mgi/snpcacheload/output
 # logs directory
 setenv CACHELOGSDIR		/data/loads/mgi/snpcacheload/logs
 
-# schema product directory
-setenv SCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
+# mgd schema product directory
+setenv MGD_DBSCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
+
+# snp schema product directory
+setenv SNP_DBSCHEMADIR            /usr/local/mgi/live/dbutils/snp/snpdbschema
 
 # source the schema configuration to get more environment vars
-source $SCHEMADIR/Configuration
+source $MGD_DBSCHEMADIR/Configuration
+source ${SNP_DBSCHEMADIR}/Configuration
 
-setenv RADAR_DBNAME	radar
+# mgd refseq _LogicalDB_key
+setenv REFSEQ_LOGICALDB_KEY     27
 
-# values for snpmarker.csh/snpmarker.py
-# for refseqs associated with SNP_ConsensusSnp_Marker objects
-setenv REFSEQ_LOGICALDB_NAME	RefSeq
-setenv MRKR_MGITYPE_NAME	"SNP Marker"
-setenv MRKR_TABLE	SNP_ConsensusSnp_Marker
+# mgd SNP_ConsensusSnp_Marker _MGIType_key
+setenv SNPMRKR_MGITYPE_KEY              32
+
+# mgd refSNP _LogicalDB_key
+setenv CS_LOGICALDB_KEY         73
+
+# mgd SNP_ConsensusSnp _LogicalDB_key
+setenv CS_MGITYPE_KEY           30
+
+# mgd EntrezGene _LogicalDB_key
+setenv EG_LOGICALDB_KEY         55
+
+# mgd MRK_Marker _MGIType_key
+setenv MRKR_MGITYPE_KEY 2
+
+# snp table names for 
 setenv ACC_TABLE ACC_Accession
-
-# values for snpcoord.csh/snpcoord.py
-setenv COORD_CACHE_TABLE	SNP_Coord_Cache
-
-# values for snpmrklocus.py
 setenv TMP_FXN_TABLE	TMP_SNP_Marker_Fxn
 setenv TMP_FXN_FILE	${TMP_FXN_TABLE}.bcp
-
-# values for snpmrkwithin.py
 setenv SNP_MRK_TABLE	SNP_ConsensusSnp_Marker
 setenv SNP_MRK_FILE	${SNP_MRK_TABLE}_Within.bcp
 
