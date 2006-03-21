@@ -19,7 +19,7 @@
 #
 #  Inputs:
 #
-#      The following tables in the MGD database are used as input:
+#      The following tables in the SNP database are used as input:
 #
 #      1) SNP_ConsensusSnp_Marker
 #      2) SNP_Coordinate_Cache
@@ -45,17 +45,17 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
-#
+#  03/16/2006  sc   updated to use snp db and process more efficiently
 #  09/28/2005  DBM  Initial development
-#  01/19/2006   sc  See HISTORY tag snpcacheload-tr7203-1 items 2 and 4
+#
 ###########################################################################
 
 import sys
 import os
 import string
+import time
 import db
 import loadlib
-import time
 
 #
 #  CONSTANTS
@@ -69,29 +69,45 @@ FNCT_CLASS_VOCAB = 'SNP Function Class'
 WITHIN_COORD_TERM = 'within coordinates of'
 WITHIN_KB_TERM = 'within %s kb %s of'
 
+MAX_SNP =  os.environ['MAX_QUERY_BATCH']
 KB_DISTANCE = [ 2, 10, 100, 500, 1000 ]
+MAX_COORD_QUERY = 'select max(startCoordinate) as maxCoord ' + \
+		'from SNP_Coord_Cache ' + \
+		'where chromosome = "%s"'
+
+NUM_SNP_QUERY = 'select count(_ConsensusSnp_key) as snpCount ' + \
+		'from SNP_Coord_Cache ' + \
+		'where chromosome = "%s"' + \
+		'and startCoordinate between %s and %s'
+
 QUERY = 'select sc._ConsensusSnp_key, ' + \
                'mc._Marker_key, ' + \
-               'sc._Feature_key, ' + \
+               'sc._Coord_Cache_key, ' + \
                'sc.startCoordinate "snpStart", ' + \
                'mc.startCoordinate "markerStart", ' + \
                'mc.endCoordinate "markerEnd", ' + \
                'mc.strand "markerStrand" ' + \
         'from SNP_Coord_Cache sc, ' + \
              'MRK_Location_Cache mc ' + \
-        'where sc._ConsensusSnp_key in ( ' + \
-              'select sc._ConsensusSnp_key where sc._ConsensusSnp_key ' + \
-	      ' >= %s and sc._ConsensusSnp_key < %s) and ' + \
-	      'mc.startCoordinate is not null and ' + \
+        'where mc.chromosome = "%s" and ' + \
+              'mc.startCoordinate is not null and ' + \
               'mc.endCoordinate is not null and ' + \
               'mc.chromosome = sc.chromosome and ' + \
+	      'sc.startCoordinate between %s and %s and ' + \
               'sc.startCoordinate >= (mc.startCoordinate - 1000000) and ' + \
               'sc.startCoordinate <= (mc.endCoordinate + 1000000) and ' + \
               'not exists (select 1 ' + \
                       'from SNP_ConsensusSnp_Marker cm ' + \
                       'where cm._Marker_key = mc._Marker_key and ' + \
                             'cm._ConsensusSnp_key = sc._ConsensusSnp_key)'
+#
+# globals
+# 
 
+# max number of lines per bcp file
+maxBcpLines = string.atoi(os.environ['MAX_BCP_LINES'])
+# current number of bcp files
+snpMrkFileCtr = 0
 
 #
 #  FUNCTIONS
@@ -104,9 +120,8 @@ QUERY = 'select sc._ConsensusSnp_key, ' + \
 # Throws: Nothing
 
 def initialize():
-    global fxnLookup, chrList, primaryKey, numRecords
-    global fpSnpMrk, snpMrkFile, snpMrkFileCtr
-    global maxBcpLines, maxQueryBatch
+    global fxnLookup, chrList, primaryKey
+    global fpSnpMrk, snpMrkFile
 
     print 'Perform initialization'
     sys.stdout.flush()
@@ -115,29 +130,23 @@ def initialize():
     #  Initialize variables.
     #
     dataDir = os.environ['CACHEDATADIR']
-    # name of the bcp file
     snpMrkFile = dataDir + '/' + os.environ['SNP_MRK_FILE']
 
-    # max number of bcp lines per file
-    maxBcpLines = string.atoi(os.environ['MAX_BCP_LINES'])
+    mgdDbServer = os.environ['MGD_DBSERVER']
+    mgdDbName = os.environ['MGD_DBNAME']
+    mgdDbUser = os.environ['MGD_DBUSER']
+    snpDbServer = os.environ['SNP_DBSERVER']
+    snpDbName = os.environ['SNP_DBNAME']
+    snpDbUser = os.environ['SNP_DBUSER']
 
-    # max number of ConsensusSnp keys in a query batch
-    maxQueryBatch = string.atoi(os.environ['MAX_QUERY_BATCH'])
-
-    # current number of bcp files 
-    snpMrkFileCtr = 0
-
-    dbServer = os.environ['DBSERVER']
-    dbName = os.environ['DBNAME']
-    dbUser = os.environ['DBUSER']
-    dbPasswordFile = os.environ['DBPASSWORDFILE']
+    dbPasswordFile = os.environ['MGD_DBPASSWORDFILE']
     dbPassword = string.strip(open(dbPasswordFile,'r').readline())
 
     #
-    #  Set up a connection to the database.
+    #  Set up a connection to the mgd database.
     #
     db.useOneConnection(1)
-    db.set_sqlLogin(dbUser, dbPassword, dbServer, dbName)
+    db.set_sqlLogin(mgdDbUser, dbPassword, mgdDbServer, mgdDbName)
 
     #
     #  Create a lookup for upstream/downstream function class terms.
@@ -151,6 +160,15 @@ def initialize():
     fxnLookup = {}
     for r in results:
         fxnLookup[r['term']] = r['_Term_key']
+
+    # close connection to the mgd database
+    db.useOneConnection(0)
+
+    #
+    #  Set up a connection to the snp database.
+    #
+    db.useOneConnection(1)
+    db.set_sqlLogin(snpDbUser, dbPassword, snpDbServer, snpDbName)
 
     #
     #  Create of list of chromosomes.
@@ -169,16 +187,11 @@ def initialize():
                      'from SNP_ConsensusSnp_Marker', 'auto')
 
     primaryKey = results[0]['key']
-    #
-    # Get the count of recrods in SNP_Coord_Cache
-    #
-    results = db.sql('select count(*) "key" ' + \
-	'from SNP_Coord_Cache', 'auto')
-    numRecords = results[0]['key']
 
     openBCPFile()
 
     return
+
 
 # Purpose: Creates a name for and opens bcp files
 # Returns: Nothing
@@ -285,108 +298,109 @@ def getKBTerm(snpStart, markerStart, markerEnd, markerStrand, kbDist):
 # Throws: Nothing
 
 def process():
-    global fxnLookup, chrList, primaryKey, numRecords
-    global fpSnpMrk, maxBcpLines, maxQueryBatch
+    global chrList, maxBcpLines 
     
-    # total number of annotations
-    total = 0
-    # number of bcpLines in current bcp file
+    # number of bcp lines in current bcp file
     bcpLines = 0
-  
-    #
-    #  Process configurable batch of _ConsensusSnp_keys to break up 
-    #  the the size of results set. As of dbsnp build 125 batching
-    #  by chromosome yields memory errors.
-    #
 
-    # initialize the range of _ConsensusSnp_key's to query for per
-    # iteration
-    lowCSKey = 0
-    highCSKey = maxQueryBatch
-
-    # add 1 for the remainder, one for the non-inclusive upper index, 
-    # yeah I know we'll be querying for some keys that don't exist 
-    # in the final iteration
-    iterations = (numRecords/maxQueryBatch) + 2
+    #
+    #  Process one chromosome at a time to break up the size of the
+    #  results set.
+    #
+    for chr in chrList:
 	
-    for i in range(1,iterations):
-        if bcpLines >= maxBcpLines:
-	    fpSnpMrk.close()
-	    openBCPFile()
-            bcpLines = 0
-        print 'Querying for _ConsensusSnp_key %s - %s' % (lowCSKey, highCSKey -1) 
-	print 'Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
-                time.localtime(time.time()))
-        sys.stdout.flush()
-        results = db.sql(QUERY % (lowCSKey, highCSKey), 'auto')
-	print 'Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
-                time.localtime(time.time()))
-        print 'Add ' + str(len(results)) + ' annotations to bcp file'
-        sys.stdout.flush()
-        total = total + len(results)
-	bcpLines = bcpLines + len(results)
-        #
-        #  Process each row of the results set for the current chromosome.
-        #
-	print 'Writing to bcp file'
-	print 'Write start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
-                time.localtime(time.time()))
+	print '%sQuery for max SNP coordinate on chr %s' % (CRT, chr)
+	results = db.sql(MAX_COORD_QUERY % chr, 'auto')
+	maxCoord = int(results[0]['maxCoord'])
+	print 'Max coord on chr %s %s' % (chr, maxCoord)
+	print 'Get SNP/marker pairs for chromosome ' + chr
 	sys.stdout.flush()
-        for r in results:
-            snpKey = r['_ConsensusSnp_key']
-            markerKey = r['_Marker_key']
-            featureKey = r['_Feature_key']
-            snpStart = r['snpStart']
-            markerStart = r['markerStart']
-            markerEnd = r['markerEnd']
-            markerStrand = r['markerStrand']
-
-            #
-            #  The SNP is located within the coordinates of the marker.
-            #
-            if snpStart >= markerStart and snpStart <= markerEnd:
-                fxnKey = fxnLookup[WITHIN_COORD_TERM]
-
-            #
-            #  The SNP must be located within one of the pre-defined "KB"
-            #  distances from the marker. Check each distance (starting
-            #  with the small range) to see which one it is.
-            #
-            else:
-                for kbDist in KB_DISTANCE:
-                    fxnKey = getKBTerm(snpStart, markerStart, markerEnd,
-                                       markerStrand, kbDist) 
-
-                    #
-                    #  If the distance has been determined, don't check
-                    #  any others.
-                    #
-                    if fxnKey > 0:
-                        break
-
-            #
-            #  Write a record to the bcp file that annotates the SNP/marker
-            #  to the proper function class.
-            #
-            fpSnpMrk.write(str(primaryKey) + DL + \
-                           str(snpKey) + DL + \
-                           str(markerKey) + DL + \
-                           str(fxnKey) + DL + \
-                           str(featureKey) + DL + \
-                           NULL + DL + NULL + DL + \
-                           NULL + DL + NULL + CRT)
-
-            primaryKey = primaryKey + 1
-	print 'Write end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
-                time.localtime(time.time()))
-	sys.stdout.flush() 
-	lowCSKey = highCSKey
-	highCSKey = highCSKey + maxQueryBatch
-
-    print 'Total annotations: ' + str(total)
-    sys.stdout.flush()
+	if bcpLines >= maxBcpLines:
+            fpSnpMrk.close()
+            openBCPFile()
+            bcpLines = 0
+	binProcess(chr, 1, maxCoord)
+    	sys.stdout.flush()
 
     return
+
+def binProcess(chr, startCoord, endCoord):
+	global fxnLookup, primaryKey
+	global fpSnpMrk
+
+	results = db.sql(NUM_SNP_QUERY % (chr, startCoord, endCoord), 'auto' )
+	#snpCount = string.atoi(results[0]['snpCount'])
+	snpCount = results[0]['snpCount']
+	print 'Total snp coordinates on chr %s between coord %s and coord %s is %s' % (chr, startCoord, endCoord, snpCount)
+	sys.stdout.flush()
+	if snpCount < MAX_SNP:
+	    print 'Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
+	                time.localtime(time.time()))
+	    sys.stdout.flush()
+	    results = db.sql(QUERY % (chr, startCoord, endCoord), 'auto')
+	    print 'Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
+                        time.localtime(time.time()))
+	    sys.stdout.flush()
+	    print 'Add %s annotations to bcp file' % str(len(results))
+	    sys.stdout.flush()
+
+	    #
+	    #  Process each row of the results set for the current chromosome.
+	    #
+	    for r in results:
+		snpKey = r['_ConsensusSnp_key']
+		markerKey = r['_Marker_key']
+		coordCacheKey = r['_Coord_Cache_key']
+		snpStart = r['snpStart']
+		markerStart = r['markerStart']
+		markerEnd = r['markerEnd']
+		markerStrand = r['markerStrand']
+
+		#
+		#  The SNP is located within the coordinates of the marker.
+		#
+		if snpStart >= markerStart and snpStart <= markerEnd:
+		    fxnKey = fxnLookup[WITHIN_COORD_TERM]
+
+		#
+		#  The SNP must be located within one of the pre-defined "KB"
+		#  distances from the marker. Check each distance (starting
+		#  with the small range) to see which one it is.
+		#
+		else:
+		    for kbDist in KB_DISTANCE:
+			fxnKey = getKBTerm(snpStart, markerStart, markerEnd,
+					   markerStrand, kbDist) 
+
+			#
+			#  If the distance has been determined, don't check
+			#  any others.
+			#
+			if fxnKey > 0:
+			    break
+
+		#
+		#  Write a record to the bcp file that annotates the SNP/marker
+		#  to the proper function class.
+		#
+		fpSnpMrk.write(str(primaryKey) + DL + \
+			       str(snpKey) + DL + \
+			       str(markerKey) + DL + \
+			       str(fxnKey) + DL + \
+			       str(coordCacheKey) + DL + \
+			       NULL + DL + NULL + DL + \
+			       NULL + DL + NULL + CRT)
+
+		primaryKey = primaryKey + 1
+
+	else:
+	    print 'snp coord count %s >  MAX_SNP %s, recursing' % (snpCount, MAX_SNP)
+	    midpt = ((endCoord - startCoord)/2) + startCoord
+	    print 'Calling binProcess(chr %s, startCoord %s, midpt %s)' % (chr, startCoord, midpt)
+	    binProcess(chr, startCoord, midpt)
+	    print 'Calling binProcess(chr %s, midpt+1 %s, endCoord %s)' % (chr, midpt+1, endCoord)
+	    binProcess(chr, midpt + 1, endCoord)
+            return
 
 
 #
