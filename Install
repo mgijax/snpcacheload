@@ -10,3 +10,18 @@
 # 3. Copy Configuration.default Configuration
 # 4. Edit Configuration
 #
+
+cd `dirname $0` && source ./Configuration
+
+if ( ! -d ${CACHEDIR} ) then
+        mkdir ${CACHEDIR}
+endif
+
+if ( ! -d ${CACHEDATADIR} ) then
+        mkdir ${CACHEDATADIR}
+endif
+
+if ( ! -d ${CACHELOGSDIR} ) then
+        mkdir ${CACHELOGSDIR}
+endif
+
