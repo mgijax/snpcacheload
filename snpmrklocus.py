@@ -47,9 +47,10 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
-#
+#  03/21/2006  sc   updated locus-region upstream/downstream algorithm tr7563
+#                   MGI3.44
 #  09/28/2005  DBM  Initial development
-#
+#  
 ###########################################################################
 
 import sys
@@ -220,43 +221,34 @@ def createBCPFile():
         markerEnd = r['markerEnd']
         markerStrand = r['markerStrand']
 
-        #
-        #  Find the midpoint of the marker.
-        #
-        midPoint = (markerStart + markerEnd) / 2.0
+	# if snp *within* the marker, do not update
+	# Note: marker start coordinates in MGI are always < end coordinates
+        if snpStart >= markerStart and snpStart <= markerEnd:
+	    #print 'snpStart %s' % snpStart
+	    #print 'markerStart %s' % markerStart
+            #print 'markerEnd %s' % markerEnd
+            #print 'strand %s' % markerStrand
+            #print '_CS_Marker_key %s' % primaryKey
+ 	    #print '' 
+	    continue
+	# if the marker straind in '+' determine fxn class accordingly
+	elif markerStrand == '+':
+	    # if snpStart < markerStart, the SNP is considered to be upstream
+	    if snpStart < markerStart:
+		fxnKey = fxnLookup[UPSTREAM_TERM]
+	    # if snpStart > markerStart, the SNP is considered to be downstream
+	    elif snpStart > markerStart:
+		fxnKey = fxnLookup[DOWNSTREAM_TERM]
 
-        #
-        #  If the SNP coordinate is <= the midpoint of the marker on a
-        #  "+" strand, the SNP is considered to be upstream.
-        #
-        if markerStrand == '+' and snpStart <= midPoint:
-            fxnKey = fxnLookup[UPSTREAM_TERM]
-
-        #
-        #  If the SNP coordinate is > the midpoint of the marker on a
-        #  "+" strand, the SNP is considered to be downstream.
-        #
-        elif markerStrand == '+' and snpStart > midPoint:
-            fxnKey = fxnLookup[DOWNSTREAM_TERM]
-
-        #
-        #  If the SNP coordinate is <= the midpoint of the marker on a
-        #  "-" strand, the SNP is considered to be downstream.
-        #
-        elif markerStrand == '-' and snpStart <= midPoint:
-            fxnKey = fxnLookup[DOWNSTREAM_TERM]
-
-        #
-        #  If the SNP coordinate is > the midpoint of the marker on a
-        #  "-" strand, the SNP is considered to be upstream.
-        #
-        elif markerStrand == '-' and snpStart > midPoint:
-            fxnKey = fxnLookup[UPSTREAM_TERM]
-
-        else:
-            continue
-
-        fpTmpFxn.write(str(primaryKey) + DL + str(fxnKey) + CRT)
+	# if marker strand is '-' determine fxn class accordingly
+	elif markerStrand == '-':
+	    # if snpStart < markerStart, the SNP is considered to be downstream
+            if snpStart < markerStart:
+                fxnKey = fxnLookup[DOWNSTREAM_TERM]
+	    # if snpStart > markerStart, the SNP is considered to be upstream
+	    elif snpStart > markerStart:
+                fxnKey = fxnLookup[UPSTREAM_TERM]
+	fpTmpFxn.write(str(primaryKey) + DL + str(fxnKey) + CRT)
 
     #
     #  Close the bcp file.
