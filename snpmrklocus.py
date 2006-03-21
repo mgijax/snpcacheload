@@ -22,7 +22,7 @@
 #
 #  Inputs:
 #
-#      The following tables in the MGD database are used as input:
+#      The following tables in the SNP database are used as input:
 #
 #      1) SNP_ConsensusSnp_Marker
 #      2) SNP_Coordinate_Cache
@@ -71,7 +71,8 @@ LOCUS_REGION_TERM = 'Locus-Region'
 UPSTREAM_TERM = 'Locus-Region (upstream)'
 DOWNSTREAM_TERM = 'Locus-Region (downstream)'
 
-
+# _Term_key for 'Locus-Region' function class
+locusRegionKey = 0
 #
 #  FUNCTIONS
 #
@@ -83,7 +84,8 @@ DOWNSTREAM_TERM = 'Locus-Region (downstream)'
 # Throws: Nothing
 
 def initialize():
-    global dbServer, dbUser, dbPasswordFile
+    global locusRegionKey
+    global snpDbServer, snpDbUser, dbPasswordFile
     global fxnLookup
     global tmpFxnTable, tmpFxnFile, fpTmpFxn
 
@@ -97,33 +99,52 @@ def initialize():
     tmpFxnTable = os.environ['TMP_FXN_TABLE']
     tmpFxnFile = dataDir + '/' + os.environ['TMP_FXN_FILE']
 
-    dbServer = os.environ['DBSERVER']
-    dbName = os.environ['DBNAME']
-    dbUser = os.environ['DBUSER']
+    mgdDbServer = os.environ['MGD_DBSERVER']
+    mgdDbName = os.environ['MGD_DBNAME']
+    mgdDbUser = os.environ['MGD_DBUSER']
+    snpDbServer = os.environ['SNP_DBSERVER']
+    snpDbName = os.environ['SNP_DBNAME']
+    snpDbUser = os.environ['SNP_DBUSER']
+
     dbPasswordFile = os.environ['DBPASSWORDFILE']
     dbPassword = string.strip(open(dbPasswordFile,'r').readline())
 
     #
-    #  Set up a connection to the database.
+    #  Set up a connection to the mgd database.
     #
     db.useOneConnection(1)
-    db.set_sqlLogin(dbUser, dbPassword, dbServer, dbName)
+    db.set_sqlLogin(mgdDbUser, dbPassword, mgdDbServer, mgdDbName)
 
     #
     #  Create a lookup for upstream/downstream function class terms.
     #
-    results = db.sql('select t._Term_key, t.term ' + \
+    cmds = []
+    cmds.append('select t._Term_key, t.term ' + \
                      'from VOC_Vocab v, VOC_Term t ' + \
-                     'where v.name = "' + FNCT_CLASS_VOCAB + '" and ' + \
-                           'v._Vocab_key = t._Vocab_key and ' + \
-                           't.term in ("' + UPSTREAM_TERM + '",' + \
-                                      '"' + DOWNSTREAM_TERM + '")',
-                     'auto')
+                     'where v.name = "%s" ' % FNCT_CLASS_VOCAB + \
+                           'and v._Vocab_key = t._Vocab_key ' + \
+                           'and t.term in ("%s", "%s") ' % (UPSTREAM_TERM , DOWNSTREAM_TERM) )
+    cmds.append('select t._Term_key ' + \
+		    'from VOC_Term t, VOC_Vocab v ' + \
+		    'where t.term = "%s" ' % LOCUS_REGION_TERM + \
+                    'and t._Vocab_key = v._Vocab_key ' + \
+                    'and v.name = "%s"' % FNCT_CLASS_VOCAB)
+
+    results = db.sql(cmds, 'auto')
 
     fxnLookup = {}
-    for r in results:
+    for r in results[0]:
         fxnLookup[r['term']] = r['_Term_key']
+    locusRegionKey = results[1][0]['_Term_key']
+    # close connection to the mgd database
+    db.useOneConnection(0)
 
+    #
+    #  Set up a connection to the snp database.
+    #
+    db.useOneConnection(1)
+    db.set_sqlLogin(snpDbUser, dbPassword, snpDbServer, snpDbName)
+    
     #
     #  Open the bcp file.
     #
@@ -178,19 +199,14 @@ def createBCPFile():
                       'mc.strand "markerStrand" ' + \
                'from SNP_ConsensusSnp_Marker sm, ' + \
                     'SNP_Coord_Cache sc, ' + \
-                    'MRK_Location_Cache mc, ' + \
-                    'VOC_TERM t, ' + \
-                    'VOC_Vocab v ' + \
-               'where sm._ConsensusSnp_key = sc._ConsensusSnp_key and ' + \
-                     'sm._Feature_key = sc._Feature_key and ' + \
-                     'sm._Marker_key = mc._Marker_key and ' + \
-                     'sm._Fxn_key = t._Term_key and ' + \
-                     't.term = "' + LOCUS_REGION_TERM + '" and ' + \
-                     't._Vocab_key = v._Vocab_key and ' + \
-                     'v.name = "' + FNCT_CLASS_VOCAB + '" and ' + \
-                     'mc.startCoordinate is not null and ' + \
-                     'mc.endCoordinate is not null and ' + \
-                     'mc.strand is not null')
+                    'MRK_Location_Cache mc ' + \
+               'where sm._ConsensusSnp_key = sc._ConsensusSnp_key ' + \
+                     'and sm._Coord_Cache_key = sc._Coord_Cache_key ' + \
+                     'and sm._Marker_key = mc._Marker_key ' + \
+                     'and sm._Fxn_key = %s ' % locusRegionKey + \
+                     'and mc.startCoordinate is not null ' + \
+                     'and mc.endCoordinate is not null ' + \
+                     'and mc.strand is not null')
 
     results = db.sql(cmd, 'auto')
 
@@ -257,7 +273,7 @@ def createBCPFile():
 # Throws: Nothing
 
 def loadBCPFile():
-    global dbServer, dbUser, dbPasswordFile
+    global snpDbServer, snpDbUser, dbPasswordFile
     global tmpFxnTable, tmpFxnFile
 
     print 'Create the temp table'
@@ -270,7 +286,7 @@ def loadBCPFile():
     sys.stdout.flush()
     bcpCmd = 'cat ' + dbPasswordFile + \
              ' | bcp tempdb..' + tmpFxnTable + ' in ' + \
-             tmpFxnFile + ' -c -t\| -S' + dbServer + ' -U' + dbUser
+             tmpFxnFile + ' -c -t\| -S' + snpDbServer + ' -U' + snpDbUser
     os.system(bcpCmd)
 
     print 'Create indexes on the temp table'
