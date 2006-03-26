@@ -33,8 +33,7 @@ touch ${LOG}
 #
 date | tee -a ${LOG}
 echo "Allow bcp into database" | tee -a ${LOG}
-${DBUTILSBINDIR}/turnonbulkcopy.csh ${SNP_DBSERVER} ${SNP_DBNAME} | tee -a ${LOG
-}
+${DBUTILSBINDIR}/turnonbulkcopy.csh ${SNP_DBSERVER} ${SNP_DBNAME} | tee -a ${LOG}
 
 #
 # Load dbSNP marker relationships
@@ -97,7 +96,7 @@ if ( ${IN_SYNC} == "yes" ) then
     # 
     date | tee -a ${LOG}
     "calling  snpmrklocation.py"
-    ${INSTALLDIR}/snpmrklocation.py
+    ${CACHEINSTALLDIR}/snpmrklocation.py
 
     # truncate snp..MRK_Location_Cache
     echo "truncating ${MRKLOC_CACHETABLE}"
