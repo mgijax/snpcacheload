@@ -9,8 +9,9 @@
 
 # install directory
 setenv CACHEINSTALLDIR		/usr/local/mgi/live/dbutils/snpcacheload
+
 # output dir
-setenv CACHEDIR /data/loads/mgi/snpcacheload_test
+setenv CACHEDIR /data/loads/mgi/snpcacheload
 
 # data directory
 setenv CACHEDATADIR             ${CACHEDIR}/output
@@ -19,11 +20,11 @@ setenv CACHEDATADIR             ${CACHEDIR}/output
 setenv CACHELOGSDIR             ${CACHEDIR}/logs
 
 # schema product directories
-setenv MGD_DBSCHEMADIR          /home/sc/snp2/dbutils/mgd/mgddbschema
-setenv SNP_DBSCHEMADIR          /home/sc/snp2/dbutils/snp/snpdbschema
+setenv MGD_DBSCHEMADIR          /usr/local/mgi/live/dbutils/mgd/mgddbschema
+setenv SNP_DBSCHEMADIR          /usr/local/mgi/live/dbutils/snp/snpdbschema
 
 # source the schema configuration to get more environment vars
-source $MGD_DBSCHEMADIR/Configuration
+source ${MGD_DBSCHEMADIR}/Configuration
 source ${SNP_DBSCHEMADIR}/Configuration
 
 # mgd refseq _LogicalDB_key
@@ -45,7 +46,7 @@ setenv EG_LOGICALDB_KEY         55
 setenv MRKR_MGITYPE_KEY 2
 
 # snp table and bcp file names 
-setenv ACC_TABLE ACC_Accession
+setenv ACC_TABLE SNP_Accession
 setenv ACC_FILE	${ACC_TABLE}.bcp
 setenv TMP_FXN_TABLE	TMP_SNP_Marker_Fxn
 setenv TMP_FXN_FILE	${TMP_FXN_TABLE}.bcp
