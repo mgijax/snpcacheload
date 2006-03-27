@@ -25,7 +25,7 @@ import accessionlib
 NL = '\n'
 DL = '|'
 TAB = '\t'
-outputdir = os.environ['OUTPUTDIR']
+outputdir = os.environ['CACHEDATADIR']
 cacheTable = os.environ['MRKLOC_CACHETABLE']
 
 bcpFile = open('%s/%s.bcp' % (outputdir, cacheTable), 'w')
