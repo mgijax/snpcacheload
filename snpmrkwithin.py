@@ -69,7 +69,6 @@ FNCT_CLASS_VOCAB = 'SNP Function Class'
 WITHIN_COORD_TERM = 'within coordinates of'
 WITHIN_KB_TERM = 'within %s kb %s of'
 
-MAX_SNP =  os.environ['MAX_QUERY_BATCH']
 KB_DISTANCE = [ 2, 10, 100, 500, 1000 ]
 MAX_COORD_QUERY = 'select max(startCoordinate) as maxCoord ' + \
 		'from SNP_Coord_Cache ' + \
@@ -104,9 +103,15 @@ QUERY = 'select sc._ConsensusSnp_key, ' + \
 # globals
 # 
 
-# max number of lines per bcp file
+# max number of lines per bcp file to avoid file > 2Gb
 maxBcpLines = string.atoi(os.environ['MAX_BCP_LINES'])
-# current number of bcp files
+
+# max number of snps to query for at one time
+# if the number of snps on a given chr is > then masSnpQueryCt
+# recurse to split the chr in half
+maxSnpQueryCt = string.atoi(os.environ['MAX_QUERY_BATCH'])
+
+# current number of bcp files created
 snpMrkFileCtr = 0
 
 #
@@ -329,11 +334,10 @@ def binProcess(chr, startCoord, endCoord):
 	global fpSnpMrk
 
 	results = db.sql(NUM_SNP_QUERY % (chr, startCoord, endCoord), 'auto' )
-	#snpCount = string.atoi(results[0]['snpCount'])
 	snpCount = results[0]['snpCount']
 	print 'Total snp coordinates on chr %s between coord %s and coord %s is %s' % (chr, startCoord, endCoord, snpCount)
 	sys.stdout.flush()
-	if snpCount < MAX_SNP:
+	if snpCount < maxSnpQueryCt:
 	    print 'Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  \
 	                time.localtime(time.time()))
 	    sys.stdout.flush()
@@ -394,7 +398,7 @@ def binProcess(chr, startCoord, endCoord):
 		primaryKey = primaryKey + 1
 
 	else:
-	    print 'snp coord count %s >  MAX_SNP %s, recursing' % (snpCount, MAX_SNP)
+	    print 'snp coord count %s >  maxSnpQueryCt %s, recursing' % (snpCount, maxSnpQueryCt)
 	    midpt = ((endCoord - startCoord)/2) + startCoord
 	    print 'Calling binProcess(chr %s, startCoord %s, midpt %s)' % (chr, startCoord, midpt)
 	    binProcess(chr, startCoord, midpt)
