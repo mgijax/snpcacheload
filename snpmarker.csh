@@ -7,7 +7,7 @@
 #
 #       Script for loading SNP_ConsensusSnp_Marker table
 #       with dbSNP determined snp to marker associations
-#       and RefSNP to marker associations.
+#       and MGI determined snp to marker associations.
 #
 # Usage:
 #
@@ -18,7 +18,7 @@
 # sc	08/17/2005 - created
 # dbm	09/28/2005 - Added snpmrklocus.py & snpmrkwithin.py
 # sc    01/2006 - process multiple snpmrkwithin.bcp files
-# sc    03/2006 - convert to snp database add copy of MRK_Location_Cache
+# sc    03/2006 - convert to snp database add load of snp MRK_Location_Cache
 
 cd `dirname $0` && source ./Configuration
 
