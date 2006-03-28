@@ -53,7 +53,7 @@ setenv TMP_FXN_FILE	${TMP_FXN_TABLE}.bcp
 setenv SNP_MRK_TABLE	SNP_ConsensusSnp_Marker
 setenv SNP_MRK_FILE	${SNP_MRK_TABLE}_Within.bcp
 setenv MRKLOC_CACHETABLE        MRK_Location_Cache
-setenv MRKLOC_CACHEFILE         ${MRK_Location_Cache}.bcp
+setenv MRKLOC_CACHEFILE         ${MRKLOC_CACHETABLE}.bcp
 
 # max number of lines per bcp file to keep below 2G
 setenv MAX_BCP_LINES	25000000 
@@ -63,3 +63,11 @@ setenv MAX_QUERY_BATCH	100000
 
 # Are dbSNP and MGI coordinates synchronized (same mouse genome build) ?
 setenv IN_SYNC	yes
+
+#
+# settings for loadmarkers.csh (bcps from the loaded snp database to
+# this production snp server/database)
+#
+setenv PRODSNP_DBSERVER DEV2_MGI
+setenv PRODSNP_DBNAME   snp
+
