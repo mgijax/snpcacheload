@@ -46,14 +46,15 @@ setenv EG_LOGICALDB_KEY         55
 setenv MRKR_MGITYPE_KEY 2
 
 # snp table and bcp file names 
-setenv ACC_TABLE SNP_Accession
-setenv ACC_FILE	${ACC_TABLE}.bcp
+setenv ACC_TABLE	SNP_Accession
+setenv ACC_FILE		${ACC_TABLE}.bcp
 setenv TMP_FXN_TABLE	TMP_SNP_Marker_Fxn
 setenv TMP_FXN_FILE	${TMP_FXN_TABLE}.bcp
 setenv SNP_MRK_TABLE	SNP_ConsensusSnp_Marker
-setenv SNP_MRK_FILE	${SNP_MRK_TABLE}_Within.bcp
-setenv MRKLOC_CACHETABLE        MRK_Location_Cache
-setenv MRKLOC_CACHEFILE         ${MRKLOC_CACHETABLE}.bcp
+setenv SNP_MRK_FILE	${SNP_MRK_TABLE}.bcp
+setenv SNP_MRK_WITHIN_FILE	${SNP_MRK_TABLE}_Within.bcp
+setenv MRKLOC_CACHETABLE	MRK_Location_Cache
+setenv MRKLOC_CACHEFILE	${MRKLOC_CACHETABLE}.bcp
 
 # max number of lines per bcp file to keep below 2G
 setenv MAX_BCP_LINES	25000000 
@@ -65,9 +66,12 @@ setenv MAX_QUERY_BATCH	100000
 setenv IN_SYNC	yes
 
 #
-# settings for loadmarkers.csh (bcps from the loaded snp database to
+# settings for loadprodmarker.csh (bcps from the loaded snp database to
 # this production snp server/database)
 #
 setenv PRODSNP_DBSERVER DEV2_MGI
 setenv PRODSNP_DBNAME   snp
+
+setenv PROD_ACC_FILE	${ACC_TABLE}_prod.bcp
+setenv PROD_SNP_MRK_FILE	${SNP_MRK_FILE}_prod.bcp
 
