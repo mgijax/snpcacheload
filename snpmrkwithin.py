@@ -135,7 +135,7 @@ def initialize():
     #  Initialize variables.
     #
     dataDir = os.environ['CACHEDATADIR']
-    snpMrkFile = dataDir + '/' + os.environ['SNP_MRK_FILE']
+    snpMrkFile = dataDir + '/' + os.environ['SNP_MRK_WITHIN_FILE']
 
     mgdDbServer = os.environ['MGD_DBSERVER']
     mgdDbName = os.environ['MGD_DBNAME']
