@@ -42,8 +42,12 @@ DB_CONNECT_ERROR = 'Connection to the database failed: '
 #
 # get values from environment
 #
+
+# table names and bcp file paths
 snpMrkrTable = os.environ['SNP_MRK_TABLE']
+snpMrkrFile = os.environ['SNP_MRK_FILE']
 accTable = os.environ['ACC_TABLE']
+accFile = os.environ['ACC_FILE']
 refSeqLdbKey = os.environ['REFSEQ_LOGICALDB_KEY']
 snpMkrMgiTypeKey = os.environ['SNPMRKR_MGITYPE_KEY']
 csLdbKey = os.environ['CS_LOGICALDB_KEY']
@@ -67,8 +71,8 @@ accKey = 0
 markerLookup = {}
 
 # bcp file writers
-mrkrBCP = open('%s.bcp' % (snpMrkrTable), 'w')
-accBCP = open('%s.bcp' % (accTable), 'w')
+mrkrBCP = open(snpMrkrFile, 'w')
+accBCP = open(accFile, 'w')
 
 #
 # Functions
@@ -153,8 +157,8 @@ def createBCP():
     # Effects: queries a database, creates files in the filesystem
     # Throws:  db.error, db.connection_exc
     
-    print 'creating %s.bcp...%s' % (snpMrkrTable, mgi_utils.date())
-    print 'and  %s.bcp...%s%s' % (accTable, mgi_utils.date(), NL)
+    print 'creating %s...%s' % (snpMrkrFile, mgi_utils.date())
+    print 'and  %s...%s%s' % (accFile, mgi_utils.date(), NL)
     print 'querying ... %s' % NL
 
     cmds = []
