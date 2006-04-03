@@ -54,7 +54,7 @@ ${SNP_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_drop.object | tee -a ${LOG}
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
 echo "Load bcp file into ${SNP_MRK_TABLE} table" | tee -a ${LOG}
-cat ${DBPASSWORDFILE} | bcp ${DBNAME}..${SNP_MRK_TABLE} in ${SNP_MRK_TABLE}.bcp -c -t\| -S${SNP_DBSERVER} -U${SNP_DBUSER} | tee -a ${LOG}
+cat ${DBPASSWORDFILE} | bcp ${DBNAME}..${SNP_MRK_TABLE} in ${SNP_MRK_FILE} -c -t\| -S${SNP_DBSERVER} -U${SNP_DBUSER} | tee -a ${LOG}
 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
@@ -136,7 +136,7 @@ if ( ${IN_SYNC} == "yes" ) then
     ${SNP_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_drop.object | tee -a ${LOG}
     echo "" | tee -a ${LOG}
     
-    foreach i (${SNP_MRK_FILE}*)
+    foreach i (${SNP_MRK_WITHIN_FILE}*)
 	date | tee -a ${LOG}
 	echo "Load bcp file into ${SNP_MRK_TABLE} table" | tee -a ${LOG}
 	cat ${DBPASSWORDFILE} | bcp ${SNP_DBNAME}..${SNP_MRK_TABLE} in $i -c -t\| -S${SNP_DBSERVER} -U${SNP_DBUSER} | tee -a ${LOG}
