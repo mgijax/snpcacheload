@@ -1,3 +1,9 @@
+TAG: snpcacheload-3-4-4-1
+DATE: 04/06/2006
+STAFF: sc
+RELEASE: MGI3.44
+CHANGES: merge tr7203 branch to trunk
+
 TAG: snpcacheload-3-4-3-2
 TAG: snpcacheload-3-4-3-1
 DATE: 02/10/2006
@@ -37,6 +43,62 @@ CHANGES:
    because of python memory errors when query is too large
    
 
+TAG: snpcacheload-tr7203-3
+DATE: 04/03/2006
+STAFF: sc
+RELEASE: 3.44 - Dev Build 2
+CHANGES:
+1) Configuration.default - 
+   a) fixed typo in MRKLOC_CACHEFILE value' 
+   b) added SNP_MRK_WITHIN_FILE, ACC_FILE
+   c) set PRODSNP_DBSERVER to PROD1_MGI
+2) updated scripts to use the above configuration
+
+TAG: snpcacheload-tr7203-2
+DATE: 3/27/2006
+STAFF: sc
+RELEASE: 3.44
+CHANGES: tr7203
+1) copied snpmrkwithin.py from trunk to get query time reporting that
+   was added after tr7203 branch was created
+2) snpmrklocation.py - load snp..MRK_Location_Cache
+3) snpmarker.csh - updated to load to SNP database, and run snpmrklocation.py
+4) snpmarker.py - updated to talk to SNP database, removed
+   created/modified, updated _Feature_key to _Coord_Cache_key, 
+   get mgd keys from configuration (ldb, mgitype)
+5) Configuration.default - added ldb, mgityp keys, added
+   SNP_DBSCHEMA, MRKLOC_CACHETABLE, MRKLOC_CACHEFILE
+6) snpmrkwithin.py - updated to use binary search to find markers by
+   chromosome and only process a configurable set of consensus snps
+   on that chromosome at a time.
+7) snpmrklocus.py - updated to talk to snp database, new locus-region
+   upstream/downstream algorithm
+8) Install - added creation of output directories
+
+TAG: snpcacheload-tr7392-BP
+DATE: 1/19/2006
+STAFF: sc
+RELEASE:
+CHANGES: Branch point tag for SNP Shoe horn tr7392
+     branched off of tag snpcacheload-tr7203-1
+
+TAG: snpcacheload-tr7203-1
+DATE: 1/19/2006
+STAFF: sc
+RELEASE:
+CHANGES:
+1) Configuration.defaults - added MAX_BCP_LINES
+  and MAX_QUERY_BATCH
+2) snpcoord.py, snpmarker.py, snpmrkwithin.py - 
+   removed created/modified by/date from bcp file
+3) snpmarker.csh - processes multiple snpmrkwithin.py bcp files
+4) snpmrkwithin.py - now creates multiple  bcp files based on 
+   a configurable number of rows. This is because bcp executed
+   from a shell script doesn't recognize files > 2Gb
+   - now processes in batches (configurable size) of 
+   _ConsensusSnp_keys's instead of by chromosome, this is
+   because of python memory errors when query is too large
+   
 TAG: snpcacheload-tr7203-BP
 DATE: 1/10/2006
 STAFF: sc

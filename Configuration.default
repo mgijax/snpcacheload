@@ -10,37 +10,62 @@
 # install directory
 setenv CACHEINSTALLDIR		/usr/local/mgi/live/dbutils/snpcacheload
 
+# output dir
+setenv CACHEDIR /data/loads/mgi/snpcacheload
+
 # data directory
-setenv CACHEDATADIR		/data/loads/mgi/snpcacheload/output
+setenv CACHEDATADIR             ${CACHEDIR}/output
 
 # logs directory
-setenv CACHELOGSDIR		/data/loads/mgi/snpcacheload/logs
+setenv CACHELOGSDIR             ${CACHEDIR}/logs
 
-# schema product directory
-setenv SCHEMADIR		/usr/local/mgi/live/dbutils/mgd/mgddbschema
+#
+# schema product directories
+#
+# schema product configured for PROD_MGI..mgd
+setenv MGD_DBSCHEMADIR          /usr/local/mgi/live/dbutils/mgd/mgddbschema
+
+# schema product configured for PROD1_MGI..snp, the snp database we load
+setenv SNP_DBSCHEMADIR          /usr/local/mgi/live/dbutils/snp/snpdbschema
 
 # source the schema configuration to get more environment vars
-source $SCHEMADIR/Configuration
+source ${MGD_DBSCHEMADIR}/Configuration
+source ${SNP_DBSCHEMADIR}/Configuration
 
-setenv RADAR_DBNAME	radar
+# mgd refseq _LogicalDB_key
+setenv REFSEQ_LOGICALDB_KEY     27
 
-# values for snpmarker.csh/snpmarker.py
-# for refseqs associated with SNP_ConsensusSnp_Marker objects
-setenv REFSEQ_LOGICALDB_NAME	RefSeq
-setenv MRKR_MGITYPE_NAME	"SNP Marker"
-setenv MRKR_TABLE	SNP_ConsensusSnp_Marker
-setenv ACC_TABLE ACC_Accession
+# mgd SNP_ConsensusSnp_Marker _MGIType_key
+setenv SNPMRKR_MGITYPE_KEY              32
 
-# values for snpcoord.csh/snpcoord.py
-setenv COORD_CACHE_TABLE	SNP_Coord_Cache
+# mgd refSNP _LogicalDB_key
+setenv CS_LOGICALDB_KEY         73
 
-# values for snpmrklocus.py
+# mgd SNP_ConsensusSnp _LogicalDB_key
+setenv CS_MGITYPE_KEY           30
+
+# mgd EntrezGene _LogicalDB_key
+setenv EG_LOGICALDB_KEY         55
+
+# mgd MRK_Marker _MGIType_key
+setenv MRKR_MGITYPE_KEY 2
+
+# snp table and bcp file names 
+setenv ACC_TABLE	SNP_Accession
+setenv ACC_FILE		${ACC_TABLE}.bcp
 setenv TMP_FXN_TABLE	TMP_SNP_Marker_Fxn
 setenv TMP_FXN_FILE	${TMP_FXN_TABLE}.bcp
-
-# values for snpmrkwithin.py
 setenv SNP_MRK_TABLE	SNP_ConsensusSnp_Marker
-setenv SNP_MRK_FILE	${SNP_MRK_TABLE}_Within.bcp
+setenv SNP_MRK_FILE	${SNP_MRK_TABLE}.bcp
+setenv SNP_MRK_WITHIN_FILE	${SNP_MRK_TABLE}_Within.bcp
+setenv MRKLOC_CACHETABLE	MRK_Location_Cache
+setenv MRKLOC_CACHEFILE	${MRKLOC_CACHETABLE}.bcp
+
+# max number of lines per bcp file to keep below 2G
+setenv MAX_BCP_LINES	25000000 
+
+# max number of ConsensusSnp keys in a query batch
+setenv MAX_QUERY_BATCH	100000
 
 # max number of lines per bcp file to keep below 2G
 setenv MAX_BCP_LINES	25000000 
@@ -50,3 +75,14 @@ setenv MAX_QUERY_BATCH	100000
 
 # Are dbSNP and MGI coordinates synchronized (same mouse genome build) ?
 setenv IN_SYNC	yes
+
+#
+# settings for loadprodmarker.csh (bcps from the loaded snp database to
+# this production snp server/database)
+#
+setenv PRODSNP_DBSERVER PROD_MGI
+setenv PRODSNP_DBNAME   snp
+
+setenv PROD_ACC_FILE	${ACC_TABLE}_prod.bcp
+setenv PROD_SNP_MRK_FILE	${SNP_MRK_FILE}_prod.bcp
+
