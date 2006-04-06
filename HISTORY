@@ -6,6 +6,7 @@ CHANGES:
 1) Configuration.default - 
    a) fixed typo in MRKLOC_CACHEFILE value' 
    b) added SNP_MRK_WITHIN_FILE, ACC_FILE
+   c) set PRODSNP_DBSERVER to PROD1_MGI
 2) updated scripts to use the above configuration
 
 TAG: snpcacheload-tr7203-2
