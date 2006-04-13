@@ -1,3 +1,11 @@
+TAG: snpcacheload-3-4-4-2
+DATE: 04/13/2006
+STAFF: sc
+RELEASE: MGI3.44
+CHANGES:
+1) added snpmarker_weekly.csh
+2) Configuration.default - added PRODSNP_DBSCHEMADIR
+
 TAG: snpcacheload-3-4-4-1
 DATE: 04/06/2006
 STAFF: sc
