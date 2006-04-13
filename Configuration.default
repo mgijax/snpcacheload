@@ -71,12 +71,15 @@ setenv MAX_QUERY_BATCH	100000
 setenv IN_SYNC	yes
 
 #
-# settings for loadprodmarker.csh (bcps from the loaded snp database to
+# settings for snpmarker_weekly.csh (bcps from the loaded snp database to
 # this production snp server/database)
 #
+
+# 
+setenv PRODSNP_DBSCHEMADIR      /net/orodruin-g/vol/shire/usr/local/mgi/live/dbutils/snp/snpdbschema
+
 setenv PRODSNP_DBSERVER PROD_MGI
 setenv PRODSNP_DBNAME   snp
 
 setenv PROD_ACC_FILE	${ACC_TABLE}_prod.bcp
 setenv PROD_SNP_MRK_FILE	${SNP_MRK_FILE}_prod.bcp
-
