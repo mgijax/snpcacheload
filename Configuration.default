@@ -64,8 +64,9 @@ setenv MRKLOC_CACHEFILE	${MRKLOC_CACHETABLE}.bcp
 # max number of lines per bcp file to keep below 2G
 setenv MAX_BCP_LINES	25000000 
 
-# max number of ConsensusSnp keys in a query batch
-setenv MAX_QUERY_BATCH	100000
+# max number of ConsensusSnp keys in a snpmrkwithin.py query batch
+setenv MAX_QUERY_BATCH  100000
+
 
 # Are dbSNP and MGI coordinates synchronized (same mouse genome build) ?
 setenv IN_SYNC	yes

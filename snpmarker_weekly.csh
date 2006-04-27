@@ -29,6 +29,7 @@ touch ${LOG}
 # run snpmarker.csh - to load the source db 
 #
 
+date | tee -a ${LOG}
 echo "Calling snpmarker.csh" | tee -a ${LOG}
 ${CACHEINSTALLDIR}/snpmarker.csh
 if ( $status ) then
@@ -40,6 +41,8 @@ endif
 # create bcp files for SNP_ConsensusSnp_Marker 
 # from back end production snp database 
 #
+echo "" | tee -a ${LOG}
+date | tee -a ${LOG}
 echo "Calling ${MGIDBUTILSBINDIR}/bcpout.csh" | tee -a ${LOG}
 ${MGIDBUTILSBINDIR}/bcpout.csh ${SNP_DBSCHEMADIR} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${PROD_SNP_MRK_FILE}| tee -a ${LOG}
 if ( $status ) then
@@ -66,6 +69,9 @@ ${PRODSNP_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_drop.object | tee -a ${LOG}
 #
 # load bcp file for SNP_ConsensusSnp_Marker into production snp database
 #
+echo "" | tee -a ${LOG}
+date | tee -a ${LOG}
+echo "Calling ${MGIDBUTILSBINDIR}/bcpin.csh" | tee -a ${LOG}
 ${MGIDBUTILSBINDIR}/bcpin.csh ${PRODSNP_DBSCHEMADIR} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${PROD_SNP_MRK_FILE} | tee -a ${LOG}
 if ( $status ) then
     echo "${MGIDBUTILSBINDIR}/bcpout.csh failed" | tee -a ${LOG}
@@ -92,6 +98,8 @@ ${DBUTILSBINDIR}/updateStatistics.csh ${PRODSNP_DBSERVER} ${PRODSNP_DBNAME} ${SN
 # create bcp files for SNP_Accession
 # from back end production snp database
 #
+echo "" | tee -a ${LOG}
+date | tee -a ${LOG}
 echo "Calling ${MGIDBUTILSBINDIR}/bcpout.csh" | tee -a ${LOG}
 ${MGIDBUTILSBINDIR}/bcpout.csh ${SNP_DBSCHEMADIR} ${ACC_TABLE} ${CACHEDATADIR} ${PROD_ACC_FILE}| tee -a ${LOG}
 if ( $status ) then
@@ -118,6 +126,9 @@ ${PRODSNP_DBSCHEMADIR}/index/${ACC_TABLE}_drop.object | tee -a ${LOG}
 #
 # load bcp file for SNP_Accession into production snp database
 #
+echo "" | tee -a ${LOG}
+date | tee -a ${LOG}
+echo "Calling ${MGIDBUTILSBINDIR}/bcpin.csh" | tee -a ${LOG}
 ${MGIDBUTILSBINDIR}/bcpin.csh ${PRODSNP_DBSCHEMADIR} ${ACC_TABLE} ${CACHEDATADIR} ${PROD_ACC_FILE} | tee -a ${LOG}
 if ( $status ) then
     echo "${MGIDBUTILSBINDIR}/bcpout.csh failed" | tee -a ${LOG}

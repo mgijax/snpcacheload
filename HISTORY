@@ -1,3 +1,11 @@
+TAG: snpcacheload-3-4-4-3
+DATE: 04/27/2006
+STAFF: sc
+RELEASE: MGI3.44
+CHANGES:
+1) snpmarker_weekly.csh added more logging
+2) Configuration.defaults - removed MAX_MARKER_QUERY_BATCH
+
 TAG: snpcacheload-3-4-4-2
 DATE: 04/13/2006
 STAFF: sc
