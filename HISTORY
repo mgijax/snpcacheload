@@ -1,3 +1,14 @@
+TAG: snpcacheload-3-5-0-1
+DATE: 05/19/2006
+STAFF: sc
+RELEASE: MGI3.5
+CHANGES:
+1) snpmrkwithin.py - new version that joins between markers
+   snps and the exclude list in memory.
+2) snpmrkwithin.py -  now handles markers with null strand
+   in particular the MIT marker which have coordinates loaded
+   by unistsload, part of the MGI3.5 release
+
 TAG: snpcacheload-3-4-4-3
 DATE: 04/27/2006
 STAFF: sc
