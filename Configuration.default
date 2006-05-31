@@ -22,15 +22,38 @@ setenv CACHELOGSDIR             ${CACHEDIR}/logs
 #
 # schema product directories
 #
-# schema product configured for PROD_MGI..mgd
+
+# schema product configured for the front-end (production) snp database
+# this path works from both shire and lindon
+setenv PRODSNP_DBSCHEMADIR      /net/orodruin-g/vol/shire/usrlocalmgi/live/dbutils/snp_migration/snpdbschema
+
+# source the front-end (production snpdbschema)
+source ${PRODSNP_DBSCHEMADIR}/Configuration
+
+# set variables we need from the front-end (production) snpdbschema
+setenv PRODSNP_DBSERVER ${SNP_DBSERVER}
+setenv PRODSNP_DBNAME   ${SNP_DBNAME}
+
+# schema product configured for production mgd database
 setenv MGD_DBSCHEMADIR          /usr/local/mgi/live/dbutils/mgd/mgddbschema
 
-# schema product configured for PROD1_MGI..snp, the snp database we load
+# schema product configured for the back-end snp database, the one we load
 setenv SNP_DBSCHEMADIR          /usr/local/mgi/live/dbutils/snp/snpdbschema
 
-# source the schema configuration to get more environment vars
+# source the mgd schema configuration
 source ${MGD_DBSCHEMADIR}/Configuration
+
+# source the back-end snp schema configuration, this overwrites sourcing of the
+# front-end (production) snp schema configuration
 source ${SNP_DBSCHEMADIR}/Configuration
+
+# full path to back-end snp database backup file. 
+# this directory is on the unix server on which the sybase server resides
+# e.g. lindon when backing up PROD1_MGI..snp
+setenv SNP_BACKUP	/extra1/sybase/snp.backup
+
+# full path to SNP_BACKUP in order to load it from shire (weekly snpcacheload)
+setenv PRODSNP_BACKUP   /net/mtdoom/vol/lindon${SNP_BACKUP}
 
 # mgd refseq _LogicalDB_key
 setenv REFSEQ_LOGICALDB_KEY     27
@@ -70,17 +93,3 @@ setenv MAX_QUERY_BATCH  100000
 
 # Are dbSNP and MGI coordinates synchronized (same mouse genome build) ?
 setenv IN_SYNC	yes
-
-#
-# settings for snpmarker_weekly.csh (bcps from the loaded snp database to
-# this production snp server/database)
-#
-
-# 
-setenv PRODSNP_DBSCHEMADIR      /net/orodruin-g/vol/shire/usr/local/mgi/live/dbutils/snp/snpdbschema
-
-setenv PRODSNP_DBSERVER PROD_MGI
-setenv PRODSNP_DBNAME   snp
-
-setenv PROD_ACC_FILE	${ACC_TABLE}_prod.bcp
-setenv PROD_SNP_MRK_FILE	${SNP_MRK_FILE}_prod.bcp
