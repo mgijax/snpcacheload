@@ -1,3 +1,13 @@
+TAG: snpcacheload-3-5-0-2
+DATE: 05/31/2006
+STAFF: sc
+RELEASE: MGI3.5
+CHANGES:
+1) Configuration.defaults - updated to reflect we are loading a dump to
+  production snp database rather than bcp in
+2) snpmarker_weekly.csh - updated to reflect we are loading a dump to
+  production snp database rather than bcp in
+
 TAG: snpcacheload-3-5-0-1
 DATE: 05/19/2006
 STAFF: sc
