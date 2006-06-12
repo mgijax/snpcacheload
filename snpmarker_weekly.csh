@@ -29,13 +29,13 @@ touch ${LOG}
 # run snpmarker.csh - to load the source db 
 #
 
-#date | tee -a ${LOG}
-#echo "Calling snpmarker.csh" | tee -a ${LOG}
-#${CACHEINSTALLDIR}/snpmarker.csh
-#if ( $status ) then
-#     echo "${CACHEINSTALLDIR}/snpmarker.csh failed" | tee -a ${LOG}
-#     exit 1
-#endif
+date | tee -a ${LOG}
+echo "Calling snpmarker.csh" | tee -a ${LOG}
+${CACHEINSTALLDIR}/snpmarker.csh
+if ( $status ) then
+     echo "${CACHEINSTALLDIR}/snpmarker.csh failed" | tee -a ${LOG}
+     exit 1
+endif
 
 #
 # backup back-end snp database
