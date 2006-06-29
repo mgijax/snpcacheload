@@ -13,7 +13,7 @@ endif
 source ${MGICONFIG}/master.config.csh
 
 # install directory
-setenv CACHEINSTALLDIR		/usr/local/mgi/live/dbutils/snpcacheload
+setenv CACHEINSTALLDIR		${DBUTILS}/snpcacheload
 
 # output dir
 setenv CACHEDIR 		/data/loads/mgi/snpcacheload
@@ -23,10 +23,6 @@ setenv CACHEDATADIR             ${CACHEDIR}/output
 
 # logs directory
 setenv CACHELOGSDIR             ${CACHEDIR}/logs
-
-# schema product configured for the front-end (production) snp database
-# this path works from both shire and lindon
-#setenv PRODSNP_DBSCHEMADIR      /net/orodruin-g/vol/shire/usrlocalmgi/live/dbutils/snp/snpdbschema
 
 # full path to back-end snp database backup file. 
 # this directory is on the unix server on which the sybase server resides
