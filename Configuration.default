@@ -3,15 +3,20 @@
 #
 # Configuration.default
 #
-# Source this file from any csh script to set the
-# env variables
+# Source this file from any csh script to set the env variables
 #
+
+if ( ${?MGICONFIG} == 0 ) then
+	setenv MGICONFIG /usr/local/mgi/live/mgiconfig
+endif
+
+source ${MGICONFIG}/master.config.csh
 
 # install directory
 setenv CACHEINSTALLDIR		/usr/local/mgi/live/dbutils/snpcacheload
 
 # output dir
-setenv CACHEDIR /data/loads/mgi/snpcacheload
+setenv CACHEDIR 		/data/loads/mgi/snpcacheload
 
 # data directory
 setenv CACHEDATADIR             ${CACHEDIR}/output
@@ -19,33 +24,9 @@ setenv CACHEDATADIR             ${CACHEDIR}/output
 # logs directory
 setenv CACHELOGSDIR             ${CACHEDIR}/logs
 
-#
-# schema product directories
-#
-
 # schema product configured for the front-end (production) snp database
 # this path works from both shire and lindon
-setenv PRODSNP_DBSCHEMADIR      /net/orodruin-g/vol/shire/usrlocalmgi/live/dbutils/snp_migration/snpdbschema
-
-# source the front-end (production snpdbschema)
-source ${PRODSNP_DBSCHEMADIR}/Configuration
-
-# set variables we need from the front-end (production) snpdbschema
-setenv PRODSNP_DBSERVER ${SNP_DBSERVER}
-setenv PRODSNP_DBNAME   ${SNP_DBNAME}
-
-# schema product configured for production mgd database
-setenv MGD_DBSCHEMADIR          /usr/local/mgi/live/dbutils/mgd/mgddbschema
-
-# schema product configured for the back-end snp database, the one we load
-setenv SNP_DBSCHEMADIR          /usr/local/mgi/live/dbutils/snp/snpdbschema
-
-# source the mgd schema configuration
-source ${MGD_DBSCHEMADIR}/Configuration
-
-# source the back-end snp schema configuration, this overwrites sourcing of the
-# front-end (production) snp schema configuration
-source ${SNP_DBSCHEMADIR}/Configuration
+#setenv PRODSNP_DBSCHEMADIR      /net/orodruin-g/vol/shire/usrlocalmgi/live/dbutils/snp/snpdbschema
 
 # full path to back-end snp database backup file. 
 # this directory is on the unix server on which the sybase server resides

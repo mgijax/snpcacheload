@@ -146,11 +146,11 @@ def initialize():
     dbServer = os.environ['MGD_DBSERVER']
     dbName = os.environ['MGD_DBNAME']
     dbUser = os.environ['MGD_DBUSER']
-    snpDbServer = os.environ['SNP_DBSERVER']
-    snpDbName = os.environ['SNP_DBNAME']
-    snpDbUser = os.environ['SNP_DBUSER']
+    snpDbServer = os.environ['SNPBE_DBSERVER']
+    snpDbName = os.environ['SNPBE_DBNAME']
+    snpDbUser = os.environ['SNPBE_DBUSER']
 
-    dbPasswordFile = os.environ['MGD_DBPASSWORDFILE']
+    dbPasswordFile = os.environ['SNPBE_DBPASSWORDFILE']
     dbPassword = string.strip(open(dbPasswordFile,'r').readline())
 
     #

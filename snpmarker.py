@@ -56,13 +56,13 @@ egLdbKey = os.environ['EG_LOGICALDB_KEY']
 mrkMgiTypeKey = os.environ['MRKR_MGITYPE_KEY']
 
 # database environment variables
-snpServer = os.environ['SNP_DBSERVER']
-snpDB = os.environ['SNP_DBNAME']
+snpServer = os.environ['SNPBE_DBSERVER']
+snpDB = os.environ['SNPBE_DBNAME']
 mgdServer = os.environ['MGD_DBSERVER']
 mgdDB = os.environ['MGD_DBNAME']
-passwdfile = os.environ['SNP_DBPASSWORDFILE']
+passwdfile = os.environ['SNPBE_DBPASSWORDFILE']
 password = string.strip(open(passwdfile, 'r').readline())
-user = os.environ['DBUSER']
+user = os.environ['SNPBE_DBUSER']
 
 # current max(_Accession_key)
 accKey = 0

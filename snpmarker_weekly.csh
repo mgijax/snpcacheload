@@ -42,16 +42,16 @@ endif
 #
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
-echo "Backing up ${SNP_DBSERVER}..${SNP_DBNAME}"
-${MGIDBUTILSBINDIR}/dump_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${SNP_BACKUP} | tee -a ${LOG}
+echo "Backing up ${SNPBE_DBSERVER}..${SNPBE_DBNAME}"
+${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${PRODSNP_BACKUP} | tee -a ${LOG}
 
 #
 # load front-end snp database
 # 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
-echo "Loading ${PRODSNP_DBSERVER}..${PRODSNP_DBNAME}" 
-${MGIDBUTILSBINDIR}/load_db.csh ${PRODSNP_DBSERVER} ${PRODSNP_DBNAME} ${PRODSNP_BACKUP} | tee -a ${LOG}
+echo "Loading ${SNP_DBSERVER}..${SNP_DBNAME}" 
+${MGI_DBUTILS}/bin/load_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${PRODSNP_BACKUP} | tee -a ${LOG}
 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
