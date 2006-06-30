@@ -42,7 +42,7 @@ endif
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
 echo "Backing up ${SNPBE_DBSERVER}..${SNPBE_DBNAME}"
-${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${PRODSNP_BACKUP} | tee -a ${LOG}
+${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_BACKUP} | tee -a ${LOG}
 
 #
 # load front-end snp database
