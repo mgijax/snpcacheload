@@ -150,7 +150,7 @@ if ( ${IN_SYNC} == "yes" ) then
     echo "" | tee -a ${LOG}
     date | tee -a ${LOG}
     echo "Update statistics on ${SNP_MRK_TABLE} table" | tee -a ${LOG}
-    ${MGI_DBUTILS}/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} | tee -a ${LOG}
+    ${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} | tee -a ${LOG}
 
 endif
 
