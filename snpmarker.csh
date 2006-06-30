@@ -19,6 +19,7 @@
 # dbm	09/28/2005 - Added snpmrklocus.py & snpmrkwithin.py
 # sc    01/2006 - process multiple snpmrkwithin.bcp files
 # sc    03/2006 - convert to snp database add load of snp MRK_Location_Cache
+# lec   06/30/2006 - modified for mgiconfig
 
 cd `dirname $0` && source ./Configuration
 

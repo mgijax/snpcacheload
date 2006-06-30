@@ -47,6 +47,8 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  06/30/2006  lec  modified for mgiconfig
+#
 #  03/21/2006  sc   updated locus-region upstream/downstream algorithm tr7563
 #                   MGI3.44
 #  09/28/2005  DBM  Initial development

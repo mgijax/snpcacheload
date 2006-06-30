@@ -6,16 +6,15 @@
 # Purpose:
 #       1) run snpmarker.csh to create new snp/marker associations in 
 #          a 'load' snp database (source snp db)
-#       2) create bcp files for SNP_ConsensusSnp_Marker and SNP_Accession
-#          from a source snp database to bcp into a target snp database
-#       3) truncates SNP_ConsensusSnp_Marker and SNP_Accession in target db
-#       4) bcps into target db
+#       2) create a backup of the source snp db
+#       3) load the backup into the destination snp db
 #
 # Usage:  snpmarker_weekly.csh
 #
 # History
 #
 # sc	03/27/2006 - created
+# lec	06/30/2006 - modified for mgiconfig
 
 cd `dirname $0` && source ./Configuration
 

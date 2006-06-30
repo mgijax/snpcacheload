@@ -45,6 +45,7 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  06/30/2006  lec  modified for mgiconfig
 #  05/17/2006  sc   add case for null strand (MIT markers, unistsload)
 #  04/2006     jak  new algorithm that uses an exclude list
 #              sc   updated to use snp db and process more efficiently

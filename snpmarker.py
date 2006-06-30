@@ -20,6 +20,8 @@
 #	- SNP (TR 1560)
 # 03/16/2006 sc convert to snp database
 #
+# lec   06/30/2006 - modified for mgiconfig
+#
 '''
 
 import sys
