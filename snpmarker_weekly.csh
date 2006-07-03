@@ -6,16 +6,15 @@
 # Purpose:
 #       1) run snpmarker.csh to create new snp/marker associations in 
 #          a 'load' snp database (source snp db)
-#       2) create bcp files for SNP_ConsensusSnp_Marker and SNP_Accession
-#          from a source snp database to bcp into a target snp database
-#       3) truncates SNP_ConsensusSnp_Marker and SNP_Accession in target db
-#       4) bcps into target db
+#       2) create a backup of the source snp db
+#       3) load the backup into the destination snp db
 #
 # Usage:  snpmarker_weekly.csh
 #
 # History
 #
 # sc	03/27/2006 - created
+# lec	06/30/2006 - modified for mgiconfig
 
 cd `dirname $0` && source ./Configuration
 
@@ -42,16 +41,16 @@ endif
 #
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
-echo "Backing up ${SNP_DBSERVER}..${SNP_DBNAME}"
-${MGIDBUTILSBINDIR}/dump_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${SNP_BACKUP} | tee -a ${LOG}
+echo "Backing up ${SNPBE_DBSERVER}..${SNPBE_DBNAME}"
+${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_BACKUP} | tee -a ${LOG}
 
 #
 # load front-end snp database
 # 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
-echo "Loading ${PRODSNP_DBSERVER}..${PRODSNP_DBNAME}" 
-${MGIDBUTILSBINDIR}/load_db.csh ${PRODSNP_DBSERVER} ${PRODSNP_DBNAME} ${PRODSNP_BACKUP} | tee -a ${LOG}
+echo "Loading ${SNP_DBSERVER}..${SNP_DBNAME}" 
+${MGI_DBUTILS}/bin/load_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${PRODSNP_BACKUP} | tee -a ${LOG}
 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}

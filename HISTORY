@@ -1,3 +1,17 @@
+TAG: snpcacheload-3-5-0-4
+DATE: 07/01/2006
+STAFF: lec
+CHANGES:
+1) mgiconfig merge
+
+TAG: snpcacheload-mgiconfig-2
+TAG: snpcacheload-mgiconfig-1
+DATE: 06/30/2006
+STAFF: lec
+CHANGES:
+1) mgiconfig: all products updated for new mgiconfig env variables
+(forgot to make branch point tag before creating branch "mgiconfig")
+
 TAG: snpcacheload-3-5-0-3
 TAG: snpcacheload-3-5-0-2
 DATE: 05/31/2006
