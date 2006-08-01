@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/sh
 
 #
 # Install
@@ -9,19 +9,26 @@
 # 2. ln -s snpcacheload-#-#-# snpcacheload
 # 3. Copy Configuration.default Configuration
 # 4. Edit Configuration
-#
+# 5. Install
 
-cd `dirname $0` && source ./Configuration
+cd `dirname $0` && . ./Configuration
 
-if ( ! -d ${CACHEDIR} ) then
+if [ ! -d ${CACHEDIR} ]
+then
         mkdir -p ${CACHEDIR}
-endif
+fi
 
-if ( ! -d ${CACHEDATADIR} ) then
+if [ ! -d ${CACHEDATADIR} ] 
+then
         mkdir -p ${CACHEDATADIR}
-endif
+fi
 
-if ( ! -d ${CACHELOGSDIR} ) then
+if [ ! -d ${CACHELOGSDIR} ] 
+then
         mkdir -p ${CACHELOGSDIR}
-endif
+fi
 
+if [ ! -d ${ARCHIVEDIR} ] 
+then
+        mkdir -p ${ARCHIVEDIR}
+fi
