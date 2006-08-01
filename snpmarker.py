@@ -16,11 +16,11 @@
 #    	   2) bcp files
 # History
 #
-# 08/17/2005	sc
-#	- SNP (TR 1560)
-# 03/16/2006 sc convert to snp database
-#
 # lec   06/30/2006 - modified for mgiconfig
+#
+# sc	03/16/2006 - convert to snp database
+#
+# sc    08/17/2005 - SNP (TR 1560)
 #
 '''
 
@@ -110,6 +110,7 @@ def initialize():
     print 'connecting to %s..%s ...%s' % (snpServer, snpDB, NL)
     # set up connection the snp database
     db.useOneConnection(0)
+    db.useOneConnection(1)
     db.set_sqlLogin(user, password, snpServer, snpDB)
 
 def deleteAccessions():

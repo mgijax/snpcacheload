@@ -45,6 +45,7 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#
 #  06/30/2006  lec  modified for mgiconfig
 #  05/17/2006  sc   add case for null strand (MIT markers, unistsload)
 #  04/2006     jak  new algorithm that uses an exclude list
@@ -645,7 +646,6 @@ def getKBTerm(snpLoc, markerStart, markerEnd, markerStrand, kbDist):
     #
     elif markerStrand == '-' and snpLoc > midPoint:
         direction = 'upstream'
-
     #
     #  If the SNP coordinate is <= the midpoint of the marker
     #  and strand is Null (MIT marker), the SNP is considered to be upstream.
