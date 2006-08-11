@@ -39,14 +39,16 @@ export CACHEINSTALLDIR CACHEDIR CACHEDATADIR CACHELOGSDIR ARCHIVEDIR
 #
 # settings for snpmarker_weekly.sh 
 #
+# backup name
+SNP_BACKUPNAME=snp.backup
 
 # full path to PROD1_MGI..snp backup file on lindon
-SNP_BACKUP=/extra1/sybase/snp.backup
+SNP_BACKUP_LOCALPATH=/extra1/sybase/${SNP_BACKUPNAME}
 
 # full path to SNP_BACKUP when on shire
-PRODSNP_BACKUP=/net/mtdoom/vol/lindon/${SNP_BACKUP}
+SNP_BACKUP_REMOTEPATH=/lindon/sybase/${SNP_BACKUPNAME}
 
-export SNP_BACKUP PROD_BACKUP
+export SNP_BACKUPNAME SNP_BACKUP_LOCALPATH SNP_BACKUP_REMOTEPATH
 
 # source this for file archiving and other utilities
 DLAJOBSTREAMFUNC=${DBUTILS}/dlautils/DLAJobStreamFunctions.sh
@@ -73,7 +75,10 @@ EG_LOGICALDB_KEY=55
 # mgd MRK_Marker _MGIType_key
 MRKR_MGITYPE_KEY=2
 
-export EG_LOGICALDB_KEY MRKR_MGITYPE_KEY
+# QTL MRK_Marker _Marker_Type_key
+MRKR_QTLTYPE_KEY=6
+
+export EG_LOGICALDB_KEY MRKR_MGITYPE_KEY MRKR_QTLTYPE_KEY
 
 # snp table and bcp file names 
 ACC_TABLE=SNP_Accession
