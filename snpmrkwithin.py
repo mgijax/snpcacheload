@@ -91,8 +91,11 @@ MAX_NUMBER_SNPS = string.atoi(os.environ['MAX_QUERY_BATCH'])
 # max number of lines per bcp file to avoid file > 2Gb
 MAX_BCP_LINES = string.atoi(os.environ['MAX_BCP_LINES'])
 
+# QTL Markery Type Key
+MRKR_QTLTYPE_KEY = string.atoi(os.environ['MRKR_QTLTYPE_KEY'])
+
 #
-# globals
+# GLOBALS
 #
 
 # number suffix for the current bcp file name
@@ -197,52 +200,14 @@ def initialize():
                      'from SNP_ConsensusSnp_Marker', 'auto')
 
     primaryKey = results[0]['key']
-    print 'primaryKey: %s' % primaryKey
+    print 'primaryKey: %s' % primaryKey 
+    if primaryKey == None:
+	sys.stderr.write('SNP_ConsensusSnp_Marker table is ' + \
+              'empty, load dbSNP Marker associations first')
+        sys.exit(1)
     openBCPFile()
 
     return
-
-# Purpose: Creates a new bcp file pointer. Uses a counter to
-#          create a unique name
-# Returns: Nothing
-# Assumes: Nothing
-# Effects: Exits if can't open the new bcp file
-# Throws: Nothing
-
-def openBCPFile():
-    global fpSnpMrk
-    global snpMrkFileCtr
-    #global snpMrkFile
-
-    # append this to next bcp filename
-    snpMrkFileCtr = snpMrkFileCtr + 1
-    try:
-        fpSnpMrk = open("%s%s" % (snpMrkFile, snpMrkFileCtr),'w')
-    except:
-        sys.stderr.write('Could not open bcp file: %s\n' % snpMrkFile)
-        sys.exit(1)
-
-    return
-
-# Purpose: Perform cleanup steps for the script.
-# Returns: Nothing
-# Assumes: Nothing
-# Effects: Nothing
-# Throws: Nothing
-
-def finalize():
-    global fpSnpMrk
-
-    db.useOneConnection(0)
-
-    #
-    #  Close the bcp file.
-    #
-    fpSnpMrk.close()
-
-    return
-
-
 
 # Purpose: Create a bcp file with annotations for SNP/marker pairs where
 #          the SNP is within 1000 kb of the marker and there is no existing
@@ -273,6 +238,45 @@ def process():
 	sys.stdout.flush()
 	binProcess(chr, 1, maxCoord)
     	sys.stdout.flush()
+
+    return
+
+# Purpose: Perform cleanup steps for the script.
+# Returns: Nothing
+# Assumes: Nothing
+# Effects: Nothing
+# Throws: Nothing
+
+def finalize():
+    global fpSnpMrk
+
+    db.useOneConnection(0)
+
+    #
+    #  Close the bcp file.
+    #
+    fpSnpMrk.close()
+
+    return
+
+# Purpose: Creates a new bcp file pointer. Uses a counter to
+#          create a unique name
+# Returns: Nothing
+# Assumes: Nothing
+# Effects: Exits if can't open the new bcp file
+# Throws: Nothing
+
+def openBCPFile():
+    global fpSnpMrk
+    global snpMrkFileCtr
+
+    # append this to next bcp filename
+    snpMrkFileCtr = snpMrkFileCtr + 1
+    try:
+        fpSnpMrk = open("%s%s" % (snpMrkFile, snpMrkFileCtr),'w')
+    except:
+        sys.stderr.write('Could not open bcp file: %s\n' % snpMrkFile)
+        sys.exit(1)
 
     return
 
@@ -431,7 +435,8 @@ def processSNPregion(chr, startCoord, endCoord):
 		       'mc.endCoordinate "markerEnd", ' + \
 		       'mc.strand "markerStrand" ' + \
 		'from MRK_Location_Cache mc ' + \
-		'where mc.chromosome = "%s" and ' + \
+		'where mc._Marker_Type_key != %s and ' % MRKR_QTLTYPE_KEY + \
+		      'mc.chromosome = "%s" and ' + \
 		      'mc.endCoordinate >= %s and ' + \
 		      'mc.startCoordinate <= %s '
 
@@ -529,7 +534,7 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     # next available _SNP_ConsensusSnp_Marker_key
     global primaryKey
 
-    KB_DISTANCE = [ 2, 10, 100, 500, 1000 ]
+    #KB_DISTANCE = [ 2, 10, 100, 500, 1000 ]
 
     markerStart  = marker['markerStart']
     markerEnd    = marker['markerEnd']
@@ -540,6 +545,7 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     snpKey = snp['_ConsensusSnp_key']
     featureKey = snp['_Coord_Cache_key']
 
+    fxnKey = -1
     #
     #  The SNP is located within the coordinates of the marker.
     #
@@ -552,25 +558,25 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     #  distances from the marker. Check each distance (starting
     #  with the small range) to see which one it is.
     #
-    else:
-	sys.stdout.flush()
-	for kbDist in KB_DISTANCE:
-
-	    fxnKey = getKBTerm(snpLoc, markerStart, markerEnd,
-			       markerStrand, kbDist) 
-
-	    #
-	    #  If the distance has been determined, don't check
-	    #  any others.
-	    #
-	    if fxnKey > 0:
-		break
+    #else:
+    #	sys.stdout.flush()
+    #	for kbDist in KB_DISTANCE:
+    #
+    #	fxnKey = getKBTerm(snpLoc, markerStart, markerEnd,
+    #	       markerStrand, kbDist) 
+    #
+    #	    #
+    #           #  If the distance has been determined, don't check
+    #	        #  any others.
+    #       #
+    #    if fxnKey > 0:
+    #		break
     # if fxnKey can't be determined print msg to stdout
     # so it will be logged and return
     if fxnKey == -1:
-        print SNP_NOT_WITHIN % (snp, MARKER_PAD, marker)
-	sys.stdout.flush()
-	return
+        #print SNP_NOT_WITHIN % (snp, MARKER_PAD, marker)
+        #sys.sys.stdout.flush()
+        return
 
     # check the number of bcp lines in the current file, creating
     # new file if >= the configured max
