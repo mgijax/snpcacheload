@@ -184,7 +184,7 @@ fi
 echo "" | tee -a ${LOAD_LOG}
 date | tee -a ${LOAD_LOG}
 echo "Backing up ${SNPBE_DBSERVER}..${SNPBE_DBNAME}"
-${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_BACKUP} | tee -a ${LOAD_LOG}
+${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_BACKUP_LOCALPATH} | tee -a ${LOAD_LOG}
 
 #
 # load front-end snp database
@@ -192,8 +192,7 @@ ${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_BACKUP} |
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
 echo "Loading ${SNP_DBSERVER}..${SNP_DBNAME}"
-${MGI_DBUTILS}/bin/load_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${PRODSNP_BACKUP} |
- tee -a ${LOAD_LOG}
+${MGI_DBUTILS}/bin/load_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${SNP_BACKUP_REMOTEPATH} | tee -a ${LOAD_LOG}
 
 echo "" | tee -a ${LOAD_LOG}
 date | tee -a ${LOAD_LOG}
