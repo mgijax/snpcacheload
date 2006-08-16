@@ -39,16 +39,10 @@ export CACHEINSTALLDIR CACHEDIR CACHEDATADIR CACHELOGSDIR ARCHIVEDIR
 #
 # settings for snpmarker_weekly.sh 
 #
-# backup name
-SNP_BACKUPNAME=snp.backup
-
 # full path to PROD1_MGI..snp backup file on lindon
-SNP_BACKUP_LOCALPATH=/extra1/sybase/${SNP_BACKUPNAME}
+SNP_BACKUP_LOCALPATH=/extra1/sybase/snp.backup
 
-# full path to SNP_BACKUP when on shire
-SNP_BACKUP_REMOTEPATH=/lindon/sybase/${SNP_BACKUPNAME}
-
-export SNP_BACKUPNAME SNP_BACKUP_LOCALPATH SNP_BACKUP_REMOTEPATH
+export SNP_BACKUP_LOCALPATH
 
 # source this for file archiving and other utilities
 DLAJOBSTREAMFUNC=${DBUTILS}/dlautils/DLAJobStreamFunctions.sh
