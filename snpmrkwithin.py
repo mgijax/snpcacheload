@@ -435,7 +435,7 @@ def processSNPregion(chr, startCoord, endCoord):
 		       'mc.endCoordinate "markerEnd", ' + \
 		       'mc.strand "markerStrand" ' + \
 		'from MRK_Location_Cache mc ' + \
-		'where mc._Marker_Type_key != %s and ' % MRKR_QTLTYPE_KEY + \
+		'where mc._MarkerType_key != %s and ' % MRKR_QTLTYPE_KEY + \
 		      'mc.chromosome = "%s" and ' + \
 		      'mc.endCoordinate >= %s and ' + \
 		      'mc.startCoordinate <= %s '
