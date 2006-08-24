@@ -283,7 +283,7 @@ then
 
     # update statistics
     echo "updating statistics on ${MRKLOC_CACHETABLE}" | tee -a  ${LOAD_LOG}
-    ${MGIDBUTILSDIR}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${MRKLOC_CACHETABLE} | tee -a ${LOAD_LOG}
+    ${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${MRKLOC_CACHETABLE} | tee -a ${LOAD_LOG}
 
     #
     # Update dbSNP locus-region function class to upstream/downstream
