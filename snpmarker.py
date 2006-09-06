@@ -16,9 +16,11 @@
 #    	   2) bcp files
 # History
 #
-# 08/17/2005	sc
-#	- SNP (TR 1560)
-# 03/16/2006 sc convert to snp database
+# lec   06/30/2006 - modified for mgiconfig
+#
+# sc	03/16/2006 - convert to snp database
+#
+# sc    08/17/2005 - SNP (TR 1560)
 #
 # lec   06/30/2006 - modified for mgiconfig
 #
@@ -89,6 +91,7 @@ def initialize():
     # Effects: queries a database
     # Throws:  db.error, db.connection_exc
     print 'connecting to mgd and loading markerLookup...%s' % NL
+    sys.stdout.flush()
     # set up connection to the mgd database
     db.useOneConnection(1)
     db.set_sqlLogin(user, password, mgdServer, mgdDB)
@@ -108,8 +111,10 @@ def initialize():
 	markerLookup[ r['egId'] ] = r['_Marker_key'] 
     
     print 'connecting to %s..%s ...%s' % (snpServer, snpDB, NL)
+    sys.stdout.flush()
     # set up connection the snp database
     db.useOneConnection(0)
+    db.useOneConnection(1)
     db.set_sqlLogin(user, password, snpServer, snpDB)
 
 def deleteAccessions():
@@ -119,6 +124,7 @@ def deleteAccessions():
     # Effects: queries a database, deletes records from a database
     # Throws:  db.error, db.connection_exc
     print 'deleting accessions ...%s' % NL
+    sys.stdout.flush()
 
     cmds = []
     cmds.append('select a._Accession_key ' + \
@@ -145,6 +151,7 @@ def getMaxAccessionKey():
     # current max(_Accession_key)
     global accKey
     print 'getting max snp accession key ...%s' % NL
+    sys.stdout.flush()
     cmds = []
     cmds.append('select max(_Accession_key) ' + \
             'from SNP_Accession')
@@ -162,6 +169,7 @@ def createBCP():
     print 'creating %s...%s' % (snpMrkrFile, mgi_utils.date())
     print 'and  %s...%s%s' % (accFile, mgi_utils.date(), NL)
     print 'querying ... %s' % NL
+    sys.stdout.flush()
 
     cmds = []
     # get set of DP_SNP_Marker attributes into a temp table
@@ -186,6 +194,7 @@ def createBCP():
     results = db.sql(cmds, 'auto')
     
     print 'writing bcp file ...%s' % NL
+    sys.stdout.flush()
     # current primary key
     primaryKey = 0
     for r in results[1]:
@@ -272,6 +281,7 @@ def finalize():
 #
 
 print 'snpmarker.py start: %s' % mgi_utils.date()
+sys.stdout.flush()
 try:
     initialize()
     getMaxAccessionKey()
@@ -288,4 +298,5 @@ except db.error, message:
     sys.exit(message)
 
 print 'snpmarker.py end: %s' % mgi_utils.date()
+sys.stdout.flush()
 

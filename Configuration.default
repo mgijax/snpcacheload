@@ -1,71 +1,109 @@
-#!/bin/csh
+#!/bin/sh
 
 #
 # Configuration.default
 #
-# Source this file from any csh script to set the env variables
+# Source this file from any bourne shell script to set the
+# env variables
 #
+#
+#  If the MGICONFIG environment variable does not have a local override,
+#  use the default "live" settings.
+#
+if [ "${MGICONFIG}" = "" ]
+then
+    MGICONFIG=/usr/local/mgi/live/mgiconfig
+    export MGICONFIG
+fi
 
-if ( ${?MGICONFIG} == 0 ) then
-	setenv MGICONFIG /usr/local/mgi/live/mgiconfig
-endif
-
-source ${MGICONFIG}/master.config.csh
+. ${MGICONFIG}/master.config.sh
 
 # install directory
-setenv CACHEINSTALLDIR		${DBUTILS}/snpcacheload
+CACHEINSTALLDIR=${DBUTILS}/snpcacheload
 
 # output dir
-setenv CACHEDIR 		/data/loads/mgi/snpcacheload
+CACHEDIR=/data/loads/mgi/snpcacheload
 
 # data directory
-setenv CACHEDATADIR             ${CACHEDIR}/output
+CACHEDATADIR=${CACHEDIR}/output
 
 # logs directory
-setenv CACHELOGSDIR             ${CACHEDIR}/logs
+CACHELOGSDIR=${CACHEDIR}/logs
 
-# full path to back-end snp database backup file. 
-# this directory is on the unix server on which the sybase server resides
-# e.g. lindon when backing up PROD1_MGI..snp
-setenv SNP_BACKUP	/extra1/sybase/snp.backup
+# directory in which to archive the contents of output and logs directories
+ARCHIVEDIR=${CACHEDIR}/archive
 
-# full path to SNP_BACKUP in order to load it from shire (weekly snpcacheload)
-setenv PRODSNP_BACKUP   /net/mtdoom/vol/lindon${SNP_BACKUP}
+export CACHEINSTALLDIR CACHEDIR CACHEDATADIR CACHELOGSDIR ARCHIVEDIR
+
+#
+# settings for snpmarker_weekly.sh 
+#
+# full path to PROD1_MGI..snp backup file on lindon
+SNP_BACKUP_LOCALPATH=/extra1/sybase/snp.backup
+
+export SNP_BACKUP_LOCALPATH
+
+# source this for file archiving and other utilities
+DLAJOBSTREAMFUNC=${DBUTILS}/dlautils/DLAJobStreamFunctions.sh
+
+export DLAJOBSTREAMFUNC
 
 # mgd refseq _LogicalDB_key
-setenv REFSEQ_LOGICALDB_KEY     27
+REFSEQ_LOGICALDB_KEY=27
 
 # mgd SNP_ConsensusSnp_Marker _MGIType_key
-setenv SNPMRKR_MGITYPE_KEY              32
+SNPMRKR_MGITYPE_KEY=32
 
 # mgd refSNP _LogicalDB_key
-setenv CS_LOGICALDB_KEY         73
+CS_LOGICALDB_KEY=73
 
 # mgd SNP_ConsensusSnp _LogicalDB_key
-setenv CS_MGITYPE_KEY           30
+CS_MGITYPE_KEY=30
+
+export REFSEQ_LOGICALDB_KEY SNPMRKR_MGITYPE_KEY CS_LOGICALDB_KEY CS_MGITYPE_KEY
 
 # mgd EntrezGene _LogicalDB_key
-setenv EG_LOGICALDB_KEY         55
+EG_LOGICALDB_KEY=55
 
 # mgd MRK_Marker _MGIType_key
-setenv MRKR_MGITYPE_KEY 2
+MRKR_MGITYPE_KEY=2
+
+# QTL MRK_Marker _Marker_Type_key
+MRKR_QTLTYPE_KEY=6
+
+export EG_LOGICALDB_KEY MRKR_MGITYPE_KEY MRKR_QTLTYPE_KEY
 
 # snp table and bcp file names 
-setenv ACC_TABLE	SNP_Accession
-setenv ACC_FILE		${ACC_TABLE}.bcp
-setenv TMP_FXN_TABLE	TMP_SNP_Marker_Fxn
-setenv TMP_FXN_FILE	${TMP_FXN_TABLE}.bcp
-setenv SNP_MRK_TABLE	SNP_ConsensusSnp_Marker
-setenv SNP_MRK_FILE	${SNP_MRK_TABLE}.bcp
-setenv SNP_MRK_WITHIN_FILE	${SNP_MRK_TABLE}_Within.bcp
-setenv MRKLOC_CACHETABLE	MRK_Location_Cache
-setenv MRKLOC_CACHEFILE	${MRKLOC_CACHETABLE}.bcp
+ACC_TABLE=SNP_Accession
+ACC_FILE=${ACC_TABLE}.bcp
+
+export ACC_TABLE ACC_FILE
+
+TMP_FXN_TABLE=TMP_SNP_Marker_Fxn
+TMP_FXN_FILE=${TMP_FXN_TABLE}.bcp
+
+export TMP_FXN_TABLE TMP_FXN_FILE
+
+SNP_MRK_TABLE=SNP_ConsensusSnp_Marker
+SNP_MRK_FILE=${SNP_MRK_TABLE}.bcp
+SNP_MRK_WITHIN_FILE=${SNP_MRK_TABLE}_Within.bcp
+
+export SNP_MRK_TABLE SNP_MRK_FILE SNP_MRK_WITHIN_FILE
+
+MRKLOC_CACHETABLE=MRK_Location_Cache
+MRKLOC_CACHEFILE=${MRKLOC_CACHETABLE}.bcp
+
+export MRKLOC_CACHETABLE MRKLOC_CACHEFILE
 
 # max number of lines per bcp file to keep below 2G
-setenv MAX_BCP_LINES	25000000 
+MAX_BCP_LINES=25000000 
 
 # max number of ConsensusSnp keys in a snpmrkwithin.py query batch
-setenv MAX_QUERY_BATCH  100000
+MAX_QUERY_BATCH=100000
+
+export MAX_BCP_LINES MAX_QUERY_BATCH
 
 # Are dbSNP and MGI coordinates synchronized (same mouse genome build) ?
-setenv IN_SYNC	yes
+IN_SYNC=yes
+
+export IN_SYNC
