@@ -18,9 +18,6 @@ fi
 
 . ${MGICONFIG}/master.config.sh
 
-# install directory
-CACHEINSTALLDIR=${DBUTILS}/snpcacheload
-
 # output dir
 CACHEDIR=/data/loads/mgi/snpcacheload
 
@@ -33,7 +30,7 @@ CACHELOGSDIR=${CACHEDIR}/logs
 # directory in which to archive the contents of output and logs directories
 ARCHIVEDIR=${CACHEDIR}/archive
 
-export CACHEINSTALLDIR CACHEDIR CACHEDATADIR CACHELOGSDIR ARCHIVEDIR
+export CACHEDIR CACHEDATADIR CACHELOGSDIR ARCHIVEDIR
 
 #
 # settings for snpmarker_weekly.sh 

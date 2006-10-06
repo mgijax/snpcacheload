@@ -169,12 +169,12 @@ cd ${CACHEDATADIR}
 #
 
 date | tee -a ${LOAD_LOG}
-echo "Calling ${CACHEINSTALLDIR}/snpmarker.sh" | tee -a ${LOAD_LOG}
-${CACHEINSTALLDIR}/snpmarker.sh
+echo "Calling ${SNPCACHELOAD}/snpmarker.sh" | tee -a ${LOAD_LOG}
+${SNPCACHELOAD}/snpmarker.sh
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
-     echo "${CACHEINSTALLDIR}/snpmarker.sh failed" | tee -a ${LOAD_LOG}
+     echo "${SNPCACHELOAD}/snpmarker.sh failed" | tee -a ${LOAD_LOG}
      exit 1
 fi
 

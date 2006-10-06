@@ -40,7 +40,7 @@ ${MGI_DBUTILS}/bin/turnonbulkcopy.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} | tee -a
 # Load dbSNP marker relationships
 #
 echo "Calling snpmarker.py" | tee -a ${LOG}
-${CACHEINSTALLDIR}/snpmarker.py | tee -a ${LOG}
+${SNPCACHELOAD}/snpmarker.py | tee -a ${LOG}
 
 echo "" | tee -a ${LOG}
 date | tee -a ${LOG}
@@ -97,7 +97,7 @@ if ( ${IN_SYNC} == "yes" ) then
     # 
     date | tee -a ${LOG}
     "calling  snpmrklocation.py"
-    ${CACHEINSTALLDIR}/snpmrklocation.py
+    ${SNPCACHELOAD}/snpmrklocation.py
 
     # truncate snp..MRK_Location_Cache
     echo "truncating ${MRKLOC_CACHETABLE}"
@@ -121,7 +121,7 @@ if ( ${IN_SYNC} == "yes" ) then
     echo "" | tee -a ${LOG}
     date | tee -a ${LOG}
     echo "Calling snpmrklocus.py" | tee -a ${LOG}
-    ${CACHEINSTALLDIR}/snpmrklocus.py | tee -a ${LOG}
+    ${SNPCACHELOAD}/snpmrklocus.py | tee -a ${LOG}
 
     #
     # load MGI snp to marker relationships
@@ -129,7 +129,7 @@ if ( ${IN_SYNC} == "yes" ) then
     echo "" | tee -a ${LOG}
     date | tee -a ${LOG}
     echo "Calling snpmrkwithin.py" | tee -a ${LOG}
-    ${CACHEINSTALLDIR}/snpmrkwithin.py | tee -a ${LOG}
+    ${SNPCACHELOAD}/snpmrkwithin.py | tee -a ${LOG}
 
     echo "" | tee -a ${LOG}
     date | tee -a ${LOG}

@@ -184,7 +184,7 @@ ${MGI_DBUTILS}/bin/turnonbulkcopy.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} | tee -a
 
 # create bcp file
 echo "Calling snpmarker.py" | tee -a ${LOAD_LOG}
-${CACHEINSTALLDIR}/snpmarker.py | tee -a ${LOAD_LOG}
+${SNPCACHELOAD}/snpmarker.py | tee -a ${LOAD_LOG}
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
@@ -292,11 +292,11 @@ then
     echo "" | tee -a ${LOAD_LOG} 
     date | tee -a ${LOAD_LOG}
     echo "Calling snpmrklocus.py" | tee -a ${LOAD_LOG}
-    ${CACHEINSTALLDIR}/snpmrklocus.py | tee -a ${LOAD_LOG}
+    ${SNPCACHELOAD}/snpmrklocus.py | tee -a ${LOAD_LOG}
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
-        echo "${CACHEINSTALLDIR}/snpmrklocus.py failed" | tee -a ${LOAD_LOG}
+        echo "${SNPCACHELOAD}/snpmrklocus.py failed" | tee -a ${LOAD_LOG}
         exit 1
     fi
 
@@ -308,11 +308,11 @@ then
     echo "" | tee -a ${LOAD_LOG}
     date | tee -a ${LOAD_LOG}
     echo "Calling snpmrkwithin.py" | tee -a ${LOAD_LOG}
-    ${CACHEINSTALLDIR}/snpmrkwithin.py | tee -a ${LOAD_LOG}
+    ${SNPCACHELOAD}/snpmrkwithin.py | tee -a ${LOAD_LOG}
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
-        echo "${CACHEINSTALLDIR}/snpmrkwithin.py failed" | tee -a ${LOAD_LOG}
+        echo "${SNPCACHELOAD}/snpmrkwithin.py failed" | tee -a ${LOAD_LOG}
         exit 1
     fi
 

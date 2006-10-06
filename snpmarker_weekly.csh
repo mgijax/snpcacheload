@@ -30,9 +30,9 @@ touch ${LOG}
 
 date | tee -a ${LOG}
 echo "Calling snpmarker.csh" | tee -a ${LOG}
-${CACHEINSTALLDIR}/snpmarker.csh
+${SNPCACHELOAD}/snpmarker.csh
 if ( $status ) then
-     echo "${CACHEINSTALLDIR}/snpmarker.csh failed" | tee -a ${LOG}
+     echo "${SNPCACHELOAD}/snpmarker.csh failed" | tee -a ${LOG}
      exit 1
 endif
 
