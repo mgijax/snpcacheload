@@ -1,8 +1,10 @@
+TAG: snpcacheload-3-5-1-3
 TAG: snpcacheload-3-5-1-2
 DATE: 10/06/2006
 STAFF: lec
 RELEASE: MGI3.51, build 36
 CHANGES: changed CACHEINSTALLDIR to SNPCACHELOAD for TR7894
+10/12 - removed all *.csh scripts
 
 TAG: snpcacheload-3-5-1-1
 DATE: 09/06/2006
