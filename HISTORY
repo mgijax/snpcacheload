@@ -1,3 +1,10 @@
+TAG: snpcacheload-3-5-1-4
+DATE: 11/06/2006
+STAFF: sc
+RELEASE: 
+CHANGES: Configuration.default - removed DLAJOBSTREAMFUNC as it is defined
+         in mgiconfig
+
 TAG: snpcacheload-3-5-1-3
 TAG: snpcacheload-3-5-1-2
 DATE: 10/06/2006
