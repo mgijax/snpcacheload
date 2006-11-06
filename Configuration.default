@@ -40,11 +40,6 @@ SNP_BACKUP_LOCALPATH=/extra1/sybase/snp.backup
 
 export SNP_BACKUP_LOCALPATH
 
-# source this for file archiving and other utilities
-DLAJOBSTREAMFUNC=${DBUTILS}/dlautils/DLAJobStreamFunctions.sh
-
-export DLAJOBSTREAMFUNC
-
 # mgd refseq _LogicalDB_key
 REFSEQ_LOGICALDB_KEY=27
 
