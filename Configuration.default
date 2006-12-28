@@ -32,6 +32,14 @@ ARCHIVEDIR=${CACHEDIR}/archive
 
 export CACHEDIR CACHEDATADIR CACHELOGSDIR ARCHIVEDIR
 
+# dbsnpload snpmarker cache load log 
+SNPMARKER_LOG=${CACHELOGSDIR}/snpmarker.log
+
+# weekly snpmarker wrapper log
+SNPMARKER_WKLY_LOG=${CACHELOGSDIR}/snpmarker_weekly.log
+
+export SNPMARKER_LOG SNPMARKER_WKLY_LOG
+
 #
 # settings for snpmarker_weekly.sh 
 #
