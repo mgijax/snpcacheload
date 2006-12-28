@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh 
 
 #
 # Program: snpmarker_weekly.sh
@@ -31,7 +31,7 @@
 #  during configuration and initialization.
 #
 cd `dirname $0` 
-LOG=`pwd`/`basename $0`.log
+LOG=`pwd`/`basename $0 .sh`.log
 rm -f ${LOG}
  
 echo date | tee -a ${LOG}
@@ -39,9 +39,9 @@ echo date | tee -a ${LOG}
 #  Verify the argument(s) to the shell script.
 #
 ARC_OUTPUT=no
-ARC_LOGS=no
+ARC_SNPMARKER_WKLY_LOGS=no
 CLEAN_OUTPUT=no
-CLEAN_LOGS=no
+CLEAN_SNPMARKER_WKLY_LOGS=no
 
 usage="Usage: snpmarker_weekly.sh [-a] [-r] [-c] [-l]"
 
@@ -62,9 +62,9 @@ for i in $*
 do
     case $i in
         -a) ARC_OUTPUT=yes; shift;;
-        -r) ARC_LOGS=yes; shift;;
+        -r) ARC_SNPMARKER_WKLY_LOGS=yes; shift;;
         -c) CLEAN_OUTPUT=yes; shift;;
-        -l) CLEAN_LOGS=yes; shift;;
+        -l) CLEAN_SNPMARKER_WKLY_LOGS=yes; shift;;
         --) shift; break;;
     esac
 done
@@ -103,7 +103,7 @@ fi
 #
 if [ ${ARC_OUTPUT} = "yes" ]
 then
-    date | tee -a ${LOG}
+    date | tee -a ${LOG} 
     echo "archiving  output directory" | tee -a ${LOG}
     createArchive ${ARCHIVEDIR}/output ${CACHEDATADIR}
     STAT=$?
@@ -128,11 +128,11 @@ then
 
 fi
 
-if [ ${ARC_LOGS} = "yes" ]
+if [ ${ARC_SNPMARKER_WKLY_LOGS} = "yes" ]
 then
-    date | tee -a ${LOG}
-    echo "archiving logs directory" | tee -a ${LOG}
-    createArchive ${ARCHIVEDIR}/logs ${CACHELOGSDIR}
+    date | tee -a ${LOG} 
+    echo "archiving logs directory" | tee -a ${LOG} 
+    createArchive ${ARCHIVEDIR}/logs ${CACHESNPMARKER_WKLY_LOGSDIR}
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
@@ -141,11 +141,11 @@ then
     fi
 fi
 
-if [ ${CLEAN_LOGS} = "yes" ]
+if [ ${CLEAN_SNPMARKER_WKLY_LOGS} = "yes" ]
 then
     date | tee -a ${LOG}
     echo "cleaning logs directory" | tee -a ${LOG}
-    cleanDir ${CACHELOGSDIR}
+    cleanDir ${CACHESNPMARKER_WKLY_LOGSDIR}
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
@@ -157,10 +157,9 @@ fi
 date | tee -a ${LOG}
 
 #
-#   Establish the load log now that we have archived/cleaned
+#   Start writing to load log now that we have archived/cleaned
 #
-LOAD_LOG=${CACHELOGSDIR}/`basename $0`.log
-date | tee -a ${LOAD_LOG}
+date | tee -a ${SNPMARKER_WKLY_LOG}
 
 cd ${CACHEDATADIR}
 
@@ -168,32 +167,32 @@ cd ${CACHEDATADIR}
 # run snpmarker.sh with no archive/clean to load the source db 
 #
 
-date | tee -a ${LOAD_LOG}
-echo "Calling ${SNPCACHELOAD}/snpmarker.sh" | tee -a ${LOAD_LOG}
+date | tee -a ${SNPMARKER_WKLY_LOG}
+echo "Calling ${SNPCACHELOAD}/snpmarker.sh" | tee -a ${SNPMARKER_WKLY_LOG}
 ${SNPCACHELOAD}/snpmarker.sh
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
-     echo "${SNPCACHELOAD}/snpmarker.sh failed" | tee -a ${LOAD_LOG}
+     echo "${SNPCACHELOAD}/snpmarker.sh failed" | tee -a ${SNPMARKER_WKLY_LOG}
      exit 1
 fi
 
 #
 # backup back end production snp database
 #
-echo "" | tee -a ${LOAD_LOG}
-date | tee -a ${LOAD_LOG}
+echo "" | tee -a ${SNPMARKER_WKLY_LOG}
+date | tee -a ${SNPMARKER_WKLY_LOG}
 echo "Backing up ${SNPBE_DBSERVER}..${SNPBE_DBNAME}"
-${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_BACKUP_LOCALPATH} | tee -a ${LOAD_LOG}
+${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_BACKUP_LOCALPATH} >> ${SNPMARKER_WKLY_LOG} 2>&1
 
 #
 # load front-end snp database
 #
-echo "" | tee -a ${LOG}
-date | tee -a ${LOG}
+echo "" | tee -a ${SNPMARKER_WKLY_LOG}
+date | tee -a ${SNPMARKER_WKLY_LOG}
 echo "Loading ${SNP_DBSERVER}..${SNP_DBNAME}"
-${MGI_DBUTILS}/bin/load_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${SNP_BACKUP_REMOTEPATH} | tee -a ${LOAD_LOG}
+${MGI_DBUTILS}/bin/load_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${SNP_BACKUP_REMOTEPATH} >> ${SNPMARKER_WKLY_LOG} 2>&1
 
-echo "" | tee -a ${LOAD_LOG}
-date | tee -a ${LOAD_LOG}
+echo "" | tee -a ${SNPMARKER_WKLY_LOG}
+date | tee -a ${SNPMARKER_WKLY_LOG}
 

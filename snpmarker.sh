@@ -97,7 +97,7 @@ then
     then
         . ${DLAJOBSTREAMFUNC}
     else
-        echo "Cannot source DLA functions script: ${DLAJOBSTREAMFUNC}" | tee -a ${LOG}
+        echo "Cannot source DLA functions script: ${DLAJOBSTREAMFUNC}" | tee -a ${SNPMARKER_LOG}
         exit 1
     fi
 else
@@ -164,85 +164,83 @@ fi
 date | tee -a ${LOG}
 
 #
-#   Establish the load log now that we have archived/cleaned
+#   Start using the load log now that we have archived/cleaned
 #
-LOAD_LOG=${CACHELOGSDIR}/`basename $0`.log
-date | tee -a ${LOAD_LOG}
 
 cd ${CACHEDATADIR}
 
 #
 # Allow bcp into database
 #
-date | tee -a ${LOAD_LOG}
-echo "Allow bcp into database" | tee -a ${LOAD_LOG}
-${MGI_DBUTILS}/bin/turnonbulkcopy.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} | tee -a ${LOAD_LOG}
+date | tee -a ${SNPMARKER_LOG}
+echo "Allow bcp into database" | tee -a ${SNPMARKER_LOG}
+${MGI_DBUTILS}/bin/turnonbulkcopy.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} >> ${SNPMARKER_LOG} 2>&1
 
 #
 # Load dbSNP marker relationships
 #
 
 # create bcp file
-echo "Calling snpmarker.py" | tee -a ${LOAD_LOG}
-${SNPCACHELOAD}/snpmarker.py | tee -a ${LOAD_LOG}
+echo "Calling snpmarker.py" | tee -a ${SNPMARKER_LOG}
+${SNPCACHELOAD}/snpmarker.py >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
-    echo "snpmarker.py failed" | tee -a ${LOAD_LOG}
+    echo "snpmarker.py failed" | tee -a ${SNPMARKER_LOG}
     exit 1
 fi
 
 # SNP_MRK_TABLE truncate, drop indexes, bcp in, create indexes
-date | tee -a ${LOAD_LOG}
-echo "bcp in  ${SNP_MRK_TABLE}" | tee -a ${LOAD_LOG}
-echo "" | tee -a ${LOAD_LOG}
+date | tee -a ${SNPMARKER_LOG}
+echo "bcp in  ${SNP_MRK_TABLE}" | tee -a ${SNPMARKER_LOG}
+echo "" | tee -a ${SNPMARKER_LOG}
 ${MGI_DBUTILS}/bin/bcpin_withTruncateDropIndex.csh ${SNPBE_DBSCHEMADIR} ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${SNP_MRK_FILE} ${DL} ${NL}
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
-    echo "${MGI_DBUTILS}/bin/bcpin_withTruncateDropIndex.csh failed" | tee -a ${LOAD_LOG}
+    echo "${MGI_DBUTILS}/bin/bcpin_withTruncateDropIndex.csh failed" | tee -a ${SNPMARKER_LOG}
     exit 1
 fi
 
 # SNP_MRK_TABLE update statistics
-echo "" | tee -a ${LOAD_LOG}
-date | tee -a ${LOAD_LOG}
-echo "Update statistics on ${SNP_MRK_TABLE} table" | tee -a ${LOAD_LOG}
-${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} | tee -a ${LOAD_LOG}
+echo "" | tee -a ${SNPMARKER_LOG}
+date | tee -a ${SNPMARKER_LOG}
+echo "Update statistics on ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
+${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} >> ${SNPMARKER_LOG} 2>&1
 
 #
 # bcp in ACC_TABLE, dropping/recreating indexes
 #
 
 # ACC_TABLE drop indexes
-echo "" | tee -a ${LOG}
-date | tee -a ${LOG}
-echo "Drop indexes on ${ACC_TABLE} table" | tee -a ${LOG}
-${SNPBE_DBSCHEMADIR}/index/${ACC_TABLE}_drop.object | tee -a ${LOG}
+echo "" | tee -a ${SNPMARKER_LOG}
+date | tee -a ${SNPMARKER_LOG}
+echo "Drop indexes on ${ACC_TABLE} table" | tee -a ${SNPMARKER_LOG}
+${SNPBE_DBSCHEMADIR}/index/${ACC_TABLE}_drop.object >> ${SNPMARKER_LOG} 2>&1
 
 # ACC_TABLE bcp in
-date | tee -a ${LOAD_LOG}
-echo "bcp in  ${ACC_TABLE} " | tee -a ${LOAD_LOG}
-echo "" | tee -a ${LOAD_LOG}
-${MGI_DBUTILS}/bin/bcpin.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${ACC_TABLE} ${CACHEDATADIR} ${ACC_FILE} ${DL} ${NL}
+date | tee -a ${SNPMARKER_LOG}
+echo "bcp in  ${ACC_TABLE} " | tee -a ${SNPMARKER_LOG}
+echo "" | tee -a ${SNPMARKER_LOG}
+${MGI_DBUTILS}/bin/bcpin.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${ACC_TABLE} ${CACHEDATADIR} ${ACC_FILE} ${DL} ${NL} >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
-    echo "${MGI_DBUTILS}/bin/bcpin.csh failed" | tee -a ${LOAD_LOG}
+    echo "${MGI_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
     exit 1
 fi
 
 # ACC_TABLE create indexes
-echo "" | tee -a ${LOG}
-date | tee -a ${LOG}
-echo "Create indexes on ${ACC_TABLE} table" | tee -a ${LOG}
-${SNPBE_DBSCHEMADIR}/index/${ACC_TABLE}_create.object | tee -a ${LOG}
+echo "" | tee -a ${SNPMARKER_LOG}
+date | tee -a ${SNPMARKER_LOG}
+echo "Create indexes on ${ACC_TABLE} table" >> ${SNPMARKER_LOG} 2>&1
+${SNPBE_DBSCHEMADIR}/index/${ACC_TABLE}_create.object >> ${SNPMARKER_LOG} 2>&1
 
 # ACC_TABLE update statistics
-echo "" | tee -a ${LOAD_LOG}
-date | tee -a ${LOAD_LOG}
-echo "Update statistics on ${ACC_TABLE} table" | tee -a ${LOAD_LOG}
-${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${ACC_TABLE} | tee -a ${LOAD_LOG}
+echo "" | tee -a ${SNPMARKER_LOG}
+date | tee -a ${SNPMARKER_LOG}
+echo "Update statistics on ${ACC_TABLE} table" | tee -a ${SNPMARKER_LOG}
+${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${ACC_TABLE} >> ${SNPMARKER_LOG} 2>&1
 
 #
 # Load MGI snp/marker distance relationships
@@ -258,45 +256,45 @@ then
     #
 
     # bcp out MRKLOC_CACHETABLE	 
-    echo "" | tee -a ${LOAD_LOG}
-    date | tee -a ${LOAD_LOG}
-    echo "bcp out ${MRKLOC_CACHETABLE}" | tee -a ${LOAD_LOG}
-    ${MGI_DBUTILS}/bin/bcpout.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${MRKLOC_CACHETABLE} ${CACHEDATADIR} ${MRKLOC_CACHEFILE} ${DL} ${NL} | tee -a ${LOAD_LOG}
+    echo "" | tee -a ${SNPMARKER_LOG}
+    date | tee -a ${SNPMARKER_LOG}
+    echo "bcp out ${MRKLOC_CACHETABLE}" | tee -a ${SNPMARKER_LOG}
+    ${MGI_DBUTILS}/bin/bcpout.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${MRKLOC_CACHETABLE} ${CACHEDATADIR} ${MRKLOC_CACHEFILE} ${DL} ${NL} >> ${SNPMARKER_LOG} 2>&1
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
-	echo "${MGI_DBUTILS}/bin/bcpout.csh failed" | tee -a ${LOAD_LOG}
+	echo "${MGI_DBUTILS}/bin/bcpout.csh failed" | tee -a ${SNPMARKER_LOG}
 	exit 1
     fi
 
     # bcp in MRKLOC_CACHETABLE, truncating and dropping/recreating indexes
-    echo "" | tee -a ${LOAD_LOG}
-    date | tee -a ${LOAD_LOG}
-    echo "bcp in MRK_Location_Cache" | tee -a ${LOAD_LOG}
-    ${MGI_DBUTILS}/bin/bcpin_withTruncateDropIndex.csh ${SNPBE_DBSCHEMADIR} ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${MRKLOC_CACHETABLE} ${CACHEDATADIR} ${MRKLOC_CACHEFILE} ${DL} ${NL}
+    echo "" | tee -a ${SNPMARKER_LOG}
+    date | tee -a ${SNPMARKER_LOG}
+    echo "bcp in MRK_Location_Cache" | tee -a ${SNPMARKER_LOG}
+    ${MGI_DBUTILS}/bin/bcpin_withTruncateDropIndex.csh ${SNPBE_DBSCHEMADIR} ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${MRKLOC_CACHETABLE} ${CACHEDATADIR} ${MRKLOC_CACHEFILE} ${DL} ${NL} >> ${SNPMARKER_LOG} 2>&1
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
-        echo "${MGI_DBUTILS}/bin/bcpin_withTruncatDropIndex.csh failed" | tee -a ${LOAD_LOG}
+        echo "${MGI_DBUTILS}/bin/bcpin_withTruncatDropIndex.csh failed" | tee -a ${SNPMARKER_LOG}
         exit 1
     fi
 
     # update statistics
-    echo "updating statistics on ${MRKLOC_CACHETABLE}" | tee -a  ${LOAD_LOG}
-    ${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${MRKLOC_CACHETABLE} | tee -a ${LOAD_LOG}
+    echo "updating statistics on ${MRKLOC_CACHETABLE}" | tee -a  ${SNPMARKER_LOG}
+    ${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${MRKLOC_CACHETABLE} >> ${SNPMARKER_LOG} 2>&1
 
     #
     # Update dbSNP locus-region function class to upstream/downstream
     #
 
-    echo "" | tee -a ${LOAD_LOG} 
-    date | tee -a ${LOAD_LOG}
-    echo "Calling snpmrklocus.py" | tee -a ${LOAD_LOG}
-    ${SNPCACHELOAD}/snpmrklocus.py | tee -a ${LOAD_LOG}
+    echo "" | tee -a ${SNPMARKER_LOG} 
+    date | tee -a ${SNPMARKER_LOG}
+    echo "Calling snpmrklocus.py" | tee -a ${SNPMARKER_LOG}
+    ${SNPCACHELOAD}/snpmrklocus.py >> ${SNPMARKER_LOG} 2>&1
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
-        echo "${SNPCACHELOAD}/snpmrklocus.py failed" | tee -a ${LOAD_LOG}
+        echo "${SNPCACHELOAD}/snpmrklocus.py failed" | tee -a ${SNPMARKER_LOG}
         exit 1
     fi
 
@@ -305,36 +303,36 @@ then
     # 
 
     # create the bcp file(s)
-    echo "" | tee -a ${LOAD_LOG}
-    date | tee -a ${LOAD_LOG}
-    echo "Calling snpmrkwithin.py" | tee -a ${LOAD_LOG}
-    ${SNPCACHELOAD}/snpmrkwithin.py | tee -a ${LOAD_LOG}
+    echo "" | tee -a ${SNPMARKER_LOG}
+    date | tee -a ${SNPMARKER_LOG}
+    echo "Calling snpmrkwithin.py" | tee -a ${SNPMARKER_LOG}
+    ${SNPCACHELOAD}/snpmrkwithin.py >> ${SNPMARKER_LOG} 2>&1
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
-        echo "${SNPCACHELOAD}/snpmrkwithin.py failed" | tee -a ${LOAD_LOG}
+        echo "${SNPCACHELOAD}/snpmrkwithin.py failed" | tee -a ${SNPMARKER_LOG}
         exit 1
     fi
 
     # SNP_MRK_TABLE drop indexes
-    echo "" | tee -a ${LOG}
-    date | tee -a ${LOG}
-    echo "Drop indexes on ${SNP_MRK_TABLE} table" | tee -a ${LOG}
-    ${SNPBE_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_drop.object | tee -a ${LOG}
+    echo "" | tee -a ${SNPMARKER_LOG}
+    date | tee -a ${SNPMARKER_LOG}
+    echo "Drop indexes on ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
+    ${SNPBE_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_drop.object >> ${SNPMARKER_LOG} 2>&1
     echo "" | tee -a ${LOG}
 
     # SNP_MRK_TABLE bcp in each file
     cd ${CACHEDATADIR}
     for i in `ls ${SNP_MRK_WITHIN_FILE}*`
     do
-	date | tee -a ${LOAD_LOG}
-	echo "Load ${i} into ${SNP_MRK_TABLE} table" | tee -a ${LOAD_LOG}
-	echo "" | tee -a ${LOAD_LOG}
-	${MGI_DBUTILS}/bin/bcpin.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} ${DL} ${NL}
+	date | tee -a ${SNPMARKER_LOG}
+	echo "Load ${i} into ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
+	echo "" | tee -a ${SNPMARKER_LOG}
+	${MGI_DBUTILS}/bin/bcpin.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} ${DL} ${NL} >> ${SNPMARKER_LOG} 2>&1
 	STAT=$?
 	if [ ${STAT} -ne 0 ]
 	then
-	    echo "${MGI_DBUTILS}/bin/bcpin.csh failed" | tee -a ${LOAD_LOG}
+	    echo "${MGI_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
 	    exit 1
 	fi
     done
@@ -343,15 +341,15 @@ then
     echo "" | tee -a ${LOG}
     date | tee -a ${LOG}
     echo "Create indexes on ${SNP_MRK_TABLE} table" | tee -a ${LOG}
-    ${SNPBE_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_create.object | tee -a ${LOG}
+    ${SNPBE_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_create.object >> ${SNPMARKER_LOG} 2>&1
 
     # SNP_MRK_TABLE update statistics
-    echo "" | tee -a ${LOAD_LOG}
-    date | tee -a ${LOAD_LOG}
-    echo "Update statistics on ${SNP_MRK_TABLE} table" | tee -a ${LOAD_LOG}
-    ${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} | tee -a ${LOAD_LOG}
+    echo "" | tee -a ${SNPMARKER_LOG}
+    date | tee -a ${SNPMARKER_LOG}
+    echo "Update statistics on ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG} 
+    ${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} >> ${SNPMARKER_LOG} 2>&1
 
 fi
 
-echo "" | tee -a ${LOAD_LOG}
-date | tee -a ${LOAD_LOG}
+echo "" | tee -a ${SNPMARKER_LOG}
+date | tee -a ${SNPMARKER_LOG} ${LOG}
