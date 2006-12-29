@@ -97,7 +97,7 @@ then
     then
         . ${DLAJOBSTREAMFUNC}
     else
-        echo "Cannot source DLA functions script: ${DLAJOBSTREAMFUNC}" | tee -a ${SNPMARKER_LOG}
+        echo "Cannot source DLA functions script: ${DLAJOBSTREAMFUNC}" | tee -a  ${LOG}
         exit 1
     fi
 else
@@ -110,7 +110,7 @@ fi
 #
 if [ ${ARC_OUTPUT} = "yes" ]
 then
-    date | tee -a ${LOG}
+    date | tee -a ${SNPMARKER_LOG} ${LOG}
     echo "archiving  output directory" | tee -a ${LOG}
     createArchive ${ARCHIVEDIR}/output ${CACHEDATADIR}
     STAT=$?
@@ -161,18 +161,16 @@ then
     fi
 fi
 
-date | tee -a ${LOG}
-
 #
 #   Start using the load log now that we have archived/cleaned
 #
+date >> ${SNPMARKER_LOG}
 
 cd ${CACHEDATADIR}
 
 #
 # Allow bcp into database
 #
-date | tee -a ${SNPMARKER_LOG}
 echo "Allow bcp into database" | tee -a ${SNPMARKER_LOG}
 ${MGI_DBUTILS}/bin/turnonbulkcopy.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} >> ${SNPMARKER_LOG} 2>&1
 

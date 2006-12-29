@@ -159,7 +159,6 @@ date | tee -a ${LOG}
 #
 #   Start writing to load log now that we have archived/cleaned
 #
-date | tee -a ${SNPMARKER_WKLY_LOG}
 
 cd ${CACHEDATADIR}
 
@@ -167,7 +166,7 @@ cd ${CACHEDATADIR}
 # run snpmarker.sh with no archive/clean to load the source db 
 #
 
-date | tee -a ${SNPMARKER_WKLY_LOG}
+date | tee ${SNPMARKER_WKLY_LOG}
 echo "Calling ${SNPCACHELOAD}/snpmarker.sh" | tee -a ${SNPMARKER_WKLY_LOG}
 ${SNPCACHELOAD}/snpmarker.sh
 STAT=$?
