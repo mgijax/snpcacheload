@@ -1,7 +1,11 @@
+TAG: snpcacheload-3-5-4-2
 TAG: snpcacheload-3-5-4-1
 DATE: 10/29/2006
 STAFF: sc
-CHANGES: snpmarker_weekly.sh - added mailx of logs
+CHANGES: 
+1) snpmarker_weekly.sh - added mailx of logs
+2) snpmarker.sh - fixed so creates new log file at start (was always
+   appending)
 
 TAG: snpcacheload-3-5-1-6
 TAG: snpcacheload-3-5-1-5

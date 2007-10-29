@@ -182,7 +182,7 @@ fi
 #
 echo "" | tee -a ${SNPMARKER_WKLY_LOG}
 date | tee -a ${SNPMARKER_WKLY_LOG}
-echo "Backing up ${SNPBE_DBSERVER}..${SNPBE_DBNAME}"
+echo "Backing up ${SNPBE_DBSERVER}..${SNPBE_DBNAME}" | tee -a ${SNPMARKER_WKLY_LOG}
 ${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_BACKUP_LOCALPATH} >> ${SNPMARKER_WKLY_LOG} 2>&1
 
 #
@@ -190,7 +190,7 @@ ${MGI_DBUTILS}/bin/dump_db.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_BACKUP_LO
 #
 echo "" | tee -a ${SNPMARKER_WKLY_LOG}
 date | tee -a ${SNPMARKER_WKLY_LOG}
-echo "Loading ${SNP_DBSERVER}..${SNP_DBNAME}"
+echo "Loading ${SNP_DBSERVER}..${SNP_DBNAME}" | tee -a ${SNPMARKER_WKLY_LOG}
 ${MGI_DBUTILS}/bin/load_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${SNP_BACKUP_REMOTEPATH} >> ${SNPMARKER_WKLY_LOG} 2>&1
 
 echo "" | tee -a ${SNPMARKER_WKLY_LOG}

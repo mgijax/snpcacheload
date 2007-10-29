@@ -164,7 +164,7 @@ fi
 #
 #   Start using the load log now that we have archived/cleaned
 #
-date >> ${SNPMARKER_LOG}
+date > ${SNPMARKER_LOG}
 
 cd ${CACHEDATADIR}
 
