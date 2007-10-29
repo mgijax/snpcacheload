@@ -173,6 +173,7 @@ STAT=$?
 if [ ${STAT} -ne 0 ]
 then
      echo "${SNPCACHELOAD}/snpmarker.sh failed" | tee -a ${SNPMARKER_WKLY_LOG}
+     mailx -s "SNP/Marker Cacheload: FAILED" ${MAIL_LOG_PROC} < ${SNPMARKER_WKLY_LOG}
      exit 1
 fi
 
@@ -195,3 +196,4 @@ ${MGI_DBUTILS}/bin/load_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${SNP_BACKUP_REMOTE
 echo "" | tee -a ${SNPMARKER_WKLY_LOG}
 date | tee -a ${SNPMARKER_WKLY_LOG}
 
+mailx -s "SNP/Marker Cacheload: SUCCESSFUL" ${MAIL_LOG_PROC} < ${SNPMARKER_WKLY_LOG}
