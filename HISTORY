@@ -1,3 +1,9 @@
+TAG: snpcacheload-4-0-2-1
+DATE: 05/22/2008
+STAFF: sc
+CHANGES: B37, dbSNP Build 128
+1) dump transaction then do deletes of SNP_Accession in loop
+
 TAG: snpcacheload-3-5-4-2
 TAG: snpcacheload-3-5-4-1
 DATE: 10/29/2006

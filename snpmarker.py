@@ -123,10 +123,29 @@ def deleteAccessions():
     # Assumes: nothing
     # Effects: queries a database, deletes records from a database
     # Throws:  db.error, db.connection_exc
+
     print 'deleting accessions ...%s' % NL
     sys.stdout.flush()
 
+    # 5/2008 note: dumping the transaction log alone is not enough to
+    # prevent log suspend, for some reason looping, in addition to 
+    # this single dump transaction seems to do the trick
+    db.sql('dump transaction %s with truncate_only' % snpDB, None)
+
+    # get the number of total accessions to delete
     cmds = []
+    cmds.append('select count(*) as cacheCount ' + \
+        'from SNP_Accession a ' + \
+        'where a._MGIType_key = %s ' % snpMkrMgiTypeKey + \
+        'and a._LogicalDB_key = %s' % refSeqLdbKey)
+    results = db.sql(cmds, 'auto')
+    numToDelete = int(results[0][0]['cacheCount'])
+    print "total to delete: %s " % numToDelete
+    sys.stdout.flush()
+
+    # commands to accomplish the delete:
+    cmds = []
+    cmds.append('set rowcount 1000000')
     cmds.append('select a._Accession_key ' + \
     'into #todelete ' + \
     'from SNP_Accession a ' + \
@@ -139,7 +158,14 @@ def deleteAccessions():
     'from #todelete d, SNP_Accession a ' + \
     'where d._Accession_key = a._Accession_key')
 
-    results = db.sql(cmds, 'auto')
+    # do the deletes in multiples of 1mill
+    while numToDelete > 0:
+        db.sql(cmds, None)
+        results = db.sql('select count(*) as delCount from #todelete', 'auto')
+        print 'Deleted %s' % results[0]['delCount']
+	sys.stdout.flush()
+        numToDelete = numToDelete - 1000000
+        db.sql('drop table #todelete', None)
 
 def getMaxAccessionKey():
     # Purpose: get max(_Accession_key) from a snp database
