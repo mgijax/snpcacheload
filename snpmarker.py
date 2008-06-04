@@ -210,6 +210,11 @@ def createBCP():
 	'where m.accID  = substring(a.accid, 3, 15) ' + \
 	'and a._MGIType_key = %s ' % csMgiTypeKey  + \
 	'and a._logicalDB_key = %s' % csLdbKey)
+    
+    # create indexes
+    cmds.append('create index idx1 on #snpmkr1(_ConsensusSnp_key)')
+    cmds.append('create index idx2 on #snpmkr1(chromosome)')
+    cmds.append('create index idx3 on #snpmkr1(startCoord)')
 
     # get the _Coord_Cache_key
     cmds.append('select r.*, c._Coord_Cache_key ' + \
@@ -223,7 +228,7 @@ def createBCP():
     sys.stdout.flush()
     # current primary key
     primaryKey = 0
-    for r in results[1]:
+    for r in results[4]:
         egId = r['egId']
 	#
 	# if egId is not associated with an MGI marker, skip it  
