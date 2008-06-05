@@ -166,6 +166,10 @@ def deleteAccessions():
 	sys.stdout.flush()
         numToDelete = numToDelete - 1000000
         db.sql('drop table #todelete', None)
+    # remove rowcount limitation
+    cmds = []
+    cmds.append('set rowcount 0')
+    db.sql(cmds, None)
 
 def getMaxAccessionKey():
     # Purpose: get max(_Accession_key) from a snp database

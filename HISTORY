@@ -1,3 +1,10 @@
+TAG: snpcacheload-4-1-0-2
+DATE: 06/05/2008
+STAFF: sc
+CHANGES: B37, dbSNP Build 128
+1) removed rowcount limitation which was set in deleteAccessions
+   (Ugh - pretty bad bug)
+
 TAG: snpcacheload-4-1-0-1
 DATE: 06/04/2008
 STAFF: sc
