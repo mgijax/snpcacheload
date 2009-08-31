@@ -193,6 +193,14 @@ date | tee -a ${SNPMARKER_WKLY_LOG}
 echo "Loading ${SNP_DBSERVER}..${SNP_DBNAME}" | tee -a ${SNPMARKER_WKLY_LOG}
 ${MGI_DBUTILS}/bin/load_db.csh ${SNP_DBSERVER} ${SNP_DBNAME} ${SNP_BACKUP_REMOTEPATH} >> ${SNPMARKER_WKLY_LOG} 2>&1
 
+#
+# set the process control flag to signal that the database has been loaded
+#
+echo "" | tee -a ${SNPMARKER_WKLY_LOG}
+date | tee -a ${SNPMARKER_WKLY_LOG}
+echo 'Set process control flag: SNP DB Loaded' | tee -a ${SNPMARKER_WKLY_LOG}
+${PROC_CTRL_CMD_PROD}/setFlag ${NS_PROD_LOAD} ${FLAG_SNP_LOADED} ${SCRIPT_NAME}
+
 echo "" | tee -a ${SNPMARKER_WKLY_LOG}
 date | tee -a ${SNPMARKER_WKLY_LOG}
 
