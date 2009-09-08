@@ -33,6 +33,8 @@
 cd `dirname $0` 
 LOG=`pwd`/`basename $0 .sh`.log
 rm -f ${LOG}
+
+SCRIPT_NAME=`basename $0`
  
 echo date | tee -a ${LOG}
 #
@@ -125,7 +127,6 @@ then
         echo "cleanDir for output directory failed" | tee -a ${LOG}
         exit 1
     fi
-
 fi
 
 if [ ${ARC_SNPMARKER_WKLY_LOGS} = "yes" ]
