@@ -1,3 +1,10 @@
+TAG: snpcacheload-4-3-0-2
+DATE: 09/08/2009
+STAFF: dbm
+CHANGES:
+1) snpmarker_weekly.sh: Set SCRIPT_NAME variable for process control so it
+   doesn't use the setting from the calling script (sundaytasks.csh)
+
 TAG: snpcacheload-4-3-0-1
 DATE: 08/31/2009
 STAFF: dbm
