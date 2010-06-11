@@ -43,7 +43,7 @@ export SNPMARKER_LOG SNPMARKER_WKLY_LOG
 #
 # settings for snpmarker_weekly.sh 
 #
-# full path to PROD1_MGI..snp backup file on lindon
+# full path to PROD2_MGI..snp_be backup file on hobbiton
 SNP_BACKUP_LOCALPATH=/extra1/sybase/snp.backup
 
 export SNP_BACKUP_LOCALPATH
