@@ -1,3 +1,10 @@
+TAG: snpcacheload-4-3-5-1
+DATE: 06/11/2010
+STAFF: dbm
+CHANGES:
+1) Configuration.default: Moving backend databases to hobbiton. Changed
+   comment on SNP_BACKUP_LOCALPATH to reflect new path.
+
 TAG: snpcacheload-4-3-0-2
 DATE: 09/08/2009
 STAFF: dbm
