@@ -18,12 +18,19 @@
 #
 # History
 #
+# lec	09/01/2011 
+#	- TR10805
+#	- bcpout/in for MRK_Location_Cache uses default bcp settings
+#	  that is, do *not* use NL/DL
+#	- make sure the MRK_Location_Cache is synced up with mgd..MRK_Location_Cache
+#
 # sc    07/27/2006 - converted to bourne shell
 # lec   06/30/2006 - modified for mgiconfig
 # sc    03/2006 - convert to snp database add load of snp MRK_Location_Cache
 # sc    01/2006 - process multiple snpmrkwithin.bcp files
 # dbm   09/28/2005 - Added snpmrklocus.py & snpmrkwithin.py
 # sc	08/17/2005 - created
+#
 
 #
 # Establish bcp file delimiters
@@ -257,7 +264,7 @@ then
     echo "" | tee -a ${SNPMARKER_LOG}
     date | tee -a ${SNPMARKER_LOG}
     echo "bcp out ${MRKLOC_CACHETABLE}" | tee -a ${SNPMARKER_LOG}
-    ${MGI_DBUTILS}/bin/bcpout.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${MRKLOC_CACHETABLE} ${CACHEDATADIR} ${MRKLOC_CACHEFILE} ${DL} ${NL} >> ${SNPMARKER_LOG} 2>&1
+    ${MGI_DBUTILS}/bin/bcpout.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${MRKLOC_CACHETABLE} ${CACHEDATADIR} ${MRKLOC_CACHEFILE} >> ${SNPMARKER_LOG} 2>&1
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
@@ -269,7 +276,7 @@ then
     echo "" | tee -a ${SNPMARKER_LOG}
     date | tee -a ${SNPMARKER_LOG}
     echo "bcp in MRK_Location_Cache" | tee -a ${SNPMARKER_LOG}
-    ${MGI_DBUTILS}/bin/bcpin_withTruncateDropIndex.csh ${SNPBE_DBSCHEMADIR} ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${MRKLOC_CACHETABLE} ${CACHEDATADIR} ${MRKLOC_CACHEFILE} ${DL} ${NL} >> ${SNPMARKER_LOG} 2>&1
+    ${MGI_DBUTILS}/bin/bcpin_withTruncateDropIndex.csh ${SNPBE_DBSCHEMADIR} ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${MRKLOC_CACHETABLE} ${CACHEDATADIR} ${MRKLOC_CACHEFILE} >> ${SNPMARKER_LOG} 2>&1
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
