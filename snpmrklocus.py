@@ -47,6 +47,8 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  09/01/2011  lec  TR10805/add _Organism_key = 1
+#
 #  06/30/2006  lec  modified for mgiconfig
 #
 #  03/21/2006  sc   updated locus-region upstream/downstream algorithm tr7563
@@ -206,6 +208,7 @@ def createBCPFile():
                'where sm._ConsensusSnp_key = sc._ConsensusSnp_key ' + \
                      'and sm._Coord_Cache_key = sc._Coord_Cache_key ' + \
                      'and sm._Marker_key = mc._Marker_key ' + \
+		     'and mc._Organism_key = 1 ' + \
                      'and sm._Fxn_key = %s ' % locusRegionKey + \
                      'and mc.startCoordinate is not null ' + \
                      'and mc.endCoordinate is not null ' + \

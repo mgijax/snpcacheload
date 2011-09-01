@@ -45,6 +45,7 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  09/01/2011  lec  TR10805/add _Organism_key = 1
 #  06/30/2006  lec  modified for mgiconfig
 #  05/17/2006  sc   add case for null strand (MIT markers, unistsload)
 #  04/2006     jak  new algorithm that uses an exclude list
@@ -434,7 +435,8 @@ def processSNPregion(chr, startCoord, endCoord):
 		       'mc.endCoordinate "markerEnd", ' + \
 		       'mc.strand "markerStrand" ' + \
 		'from MRK_Location_Cache mc ' + \
-		'where mc._Marker_Type_key != %s and ' % MRKR_QTLTYPE_KEY + \
+		'where mc._Organism_key = 1 and ' + \
+		      'mc._Marker_Type_key != %s and ' % MRKR_QTLTYPE_KEY + \
 		      'mc.chromosome = "%s" and ' + \
 		      'mc.endCoordinate >= %s and ' + \
 		      'mc.startCoordinate <= %s '

@@ -1,8 +1,10 @@
+TAG: snpcacheload-4-4-2-2
 TAG: snpcacheload-4-4-2-1
 DATE: 09/01/2011
 STAFF: lec
 CHANGES:
 1) TR10805/snpmarker.sh/MRK_Location_Cache
+2) snpmrklocus.py/snpmrkwithin.py; added _Organism_key = 1
 
 TAG: snpcacheload-4-3-5-1
 DATE: 06/11/2010
