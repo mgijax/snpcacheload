@@ -1,3 +1,9 @@
+TAG: snpcacheload-4-4-2-3
+DATE: 11/29/2011
+STAFF: sc
+CHANGES: TR10916
+1) snpmarker.py - delete accessions before getting max(_Accession_key)
+
 TAG: snpcacheload-4-4-2-2
 TAG: snpcacheload-4-4-2-1
 DATE: 09/01/2011

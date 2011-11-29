@@ -116,6 +116,8 @@ def initialize():
     db.useOneConnection(0)
     db.useOneConnection(1)
     db.set_sqlLogin(user, password, snpServer, snpDB)
+    deleteAccessions()
+    getMaxAccessionKey()
 
 def deleteAccessions():
     # Purpose: delete accession records 
@@ -319,8 +321,8 @@ print 'snpmarker.py start: %s' % mgi_utils.date()
 sys.stdout.flush()
 try:
     initialize()
-    getMaxAccessionKey()
-    deleteAccessions()
+    #getMaxAccessionKey()
+    #deleteAccessions()
     createBCP()
     finalize()
 except db.connection_exc, message:
