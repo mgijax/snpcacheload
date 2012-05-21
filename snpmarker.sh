@@ -22,7 +22,7 @@
 #	- TR10788
 #	- updated for postgres, this includes removing
 #	   - rm bcp in/out of mgd..MRK_Location_Cache to snp..MRK_Location_Cache
-#	   - bulkLoadPostgres.csh instead of bcpin.csh
+#	   - bcpin.csh instead of bcpin.csh
 #	   - rm all sybase specific stuff 
 # lec	09/01/2011 
 #	- TR10805
@@ -216,12 +216,12 @@ ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object
 date | tee -a ${SNPMARKER_LOG}
 echo "copy in  ${SNP_MRK_TABLE}" | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bulkLoadPostgres.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${SNP_MRK_FILE} ${DL} ${SNP_MRK_TABLE} ${SCHEMA}
+${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${SNP_MRK_FILE} ${DL} ${SNP_MRK_TABLE} ${SCHEMA}
 STAT=$?
 echo "snpmarker.sh exit code from bulkLoadPostres ${STAT}"
 if [ ${STAT} -ne 0 ]
 then
-    echo "bulkLoadPostgres.csh failed" | tee -a ${SNPMARKER_LOG}
+    echo "bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
     exit 1
 fi
 
@@ -242,7 +242,7 @@ ${SNP_DBSCHEMADIR}/index/SNP_Accession_drop.object
 date | tee -a ${SNPMARKER_LOG}
 echo "copy in  ${ACC_TABLE} " | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bulkLoadPostgres.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${ACC_FILE} ${DL} ${ACC_TABLE} ${SCHEMA}
+${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${ACC_FILE} ${DL} ${ACC_TABLE} ${SCHEMA}
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
@@ -310,11 +310,11 @@ then
 	date | tee -a ${SNPMARKER_LOG}
 	echo "Load ${i} into ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
 	echo "" | tee -a ${SNPMARKER_LOG}
-	${PG_DBUTILS}/bin/bulkLoadPostgres.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${i} ${DL} ${SNP_MRK_TABLE} ${SCHEMA}
+	${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${i} ${DL} ${SNP_MRK_TABLE} ${SCHEMA}
 	STAT=$?
 	if [ ${STAT} -ne 0 ]
 	then
-	    echo "${PG_DBUTILS}/bin/bulkLoadPostgres.csh failed" | tee -a ${SNPMARKER_LOG}
+	    echo "${PG_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
 	    exit 1
 	fi
     done
