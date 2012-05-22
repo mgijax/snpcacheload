@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 #
 # Program: snpmarker.sh
@@ -325,5 +325,5 @@ then
     echo "" | tee -a ${SNPMARKER_LOG}
     ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object
 fi
-echo "" | tee -a ${SNPMARKER_LOG}
+date | tee -a ${SNPMARKER_LOG}
 
