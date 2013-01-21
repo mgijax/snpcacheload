@@ -18,6 +18,9 @@
 #
 # History
 #
+# lec	01/21/2013
+#	- TR10788/testing on linux server (TR11248 scrum project)
+#
 # sc	04/20/2012 
 #	- TR10788
 #	- updated for postgres, this includes removing
@@ -193,15 +196,15 @@ cd ${CACHEDATADIR}
 # Load dbSNP marker relationships
 #
 
-#date | tee -a ${SNPMARKER_LOG}
-#echo "Calling snpmarker.py" | tee -a ${SNPMARKER_LOG}
-#${SNPCACHELOAD}/snpmarker.py >> ${SNPMARKER_LOG} 2>&1
-#STAT=$?
-#if [ ${STAT} -ne 0 ]
-#then
-#    echo "snpmarker.py failed" | tee -a ${SNPMARKER_LOG}
-#    exit 1
-#fi
+date | tee -a ${SNPMARKER_LOG}
+echo "Calling snpmarker.py" | tee -a ${SNPMARKER_LOG}
+${SNPCACHELOAD}/snpmarker.py >> ${SNPMARKER_LOG} 2>&1
+STAT=$?
+if [ ${STAT} -ne 0 ]
+then
+    echo "snpmarker.py failed" | tee -a ${SNPMARKER_LOG}
+    exit 1
+fi
 
 #
 # copy in SNP_MRK_TABLE, truncating and dropping/recreating indexes
@@ -210,13 +213,13 @@ cd ${CACHEDATADIR}
 # Note: we can't drop the index of the primary key because it is constraint 
 # on the primary key
 echo "Truncate and drop indexes on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
-${PG_SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object
-${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object
+${PG_SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
 
 date | tee -a ${SNPMARKER_LOG}
 echo "copy in  ${SNP_MRK_TABLE}" | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${SNP_MRK_FILE} ${DL} ${SNP_MRK_TABLE} ${SCHEMA}
+${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${SNP_MRK_FILE} ${DL} ${SNP_MRK_TABLE} ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 echo "snpmarker.sh exit code from bulkLoadPostres ${STAT}"
 if [ ${STAT} -ne 0 ]
@@ -228,8 +231,7 @@ fi
 date | tee -a ${SNPMARKER_LOG}
 echo "Create index on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-
-${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object
+${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
 
 #
 # copy in ACC_TABLE, dropping/recreating indexes
@@ -237,12 +239,12 @@ ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object
 date | tee -a ${SNPMARKER_LOG}
 echo "Drop indexes on ${ACC_TABLE}"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_drop.object
+${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
 
 date | tee -a ${SNPMARKER_LOG}
 echo "copy in  ${ACC_TABLE} " | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${ACC_FILE} ${DL} ${ACC_TABLE} ${SCHEMA}
+${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${ACC_FILE} ${DL} ${ACC_TABLE} ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
@@ -253,7 +255,7 @@ fi
 date | tee -a ${SNPMARKER_LOG}
 echo "Create indexes on ${ACC_TABLE} table" 
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_create.object
+${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_create.object >> ${SNPMARKER_LOG} 2>&1
 
 #
 # Load MGI snp/marker distance relationships
