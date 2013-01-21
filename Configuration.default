@@ -19,7 +19,7 @@ fi
 . ${MGICONFIG}/master.config.sh
 
 # output dir
-CACHEDIR=/data/loads/mgi/snpcacheload
+CACHEDIR=${DATALOADSOUTPUT}/mgi/snpcacheload
 
 # data directory
 CACHEDATADIR=${CACHEDIR}/output
