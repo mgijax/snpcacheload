@@ -202,6 +202,7 @@ then
     echo "snpmarker.py failed" | tee -a ${SNPMARKER_LOG}
     exit 1
 fi
+exit 0
 
 #
 # copy in SNP_MRK_TABLE, truncating and dropping/recreating indexes
