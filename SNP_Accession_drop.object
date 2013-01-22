@@ -32,9 +32,6 @@ drop index snp.SNP_Accession_idx_clustered
 drop index snp.SNP_Accession_idx_Object_MGIType_key
 ;
 
-drop index snp.SNP_Accession_idx_accID
-;
-
 drop index snp.SNP_Accession_idx_numericPart
 ;
 

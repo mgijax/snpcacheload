@@ -89,6 +89,9 @@ def initialize():
     # Assumes: nothing
     # Effects: queries a database
 
+    # turn of tracing statements
+    db.setTrace(True)
+
     password = db.get_sqlPassword()
 
     print 'connecting to database and loading markerLookup...%s' % NL
@@ -111,7 +114,6 @@ def initialize():
     for r in results[1]:
 	markerLookup[ r[0] ] = r[1] 
     
-    db.setTrace(True)
     print 'connecting to %s..%s ...%s' % (server, database, NL)
     sys.stdout.flush()
 
@@ -121,6 +123,10 @@ def deleteAccessions():
     # Assumes: nothing
     # Effects: queries a database, deletes records from a database
     # Throws:  db.error, db.connection_exc
+
+    #
+    # note that the wrapper deletes non-essential SNP_Accession indexes
+    #
 
     print 'deleting accessions...%s' % NL
     sys.stdout.flush()
