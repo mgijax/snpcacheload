@@ -196,6 +196,14 @@ cd ${CACHEDATADIR}
 # Load dbSNP marker relationships
 #
 
+#
+# drop indexes that are no needed/used by the SNPCACHELOAD
+# this will will make the ACC_TABLE deletion run much faster
+#
+date | tee -a ${SNPMARKER_LOG}
+echo "drop indexes on ${ACC_TABLE}"  | tee -a ${LOG}
+${SNPCACHELOAD}/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
+
 date | tee -a ${SNPMARKER_LOG}
 echo "Calling snpmarker.py" | tee -a ${SNPMARKER_LOG}
 ${SNPCACHELOAD}/snpmarker.py >> ${SNPMARKER_LOG} 2>&1
