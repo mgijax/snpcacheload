@@ -212,6 +212,7 @@ fi
 
 # Note: we can't drop the index of the primary key because it is constraint 
 # on the primary key
+date | tee -a ${SNPMARKER_LOG}
 echo "Truncate and drop indexes on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
 ${PG_SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object >> ${SNPMARKER_LOG} 2>&1
 ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
@@ -233,14 +234,18 @@ echo "Create index on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
 ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
 
-#
-# copy in ACC_TABLE, dropping/recreating indexes
-#
+# Note: we can't drop the index of the primary key because it is constraint 
+# on the primary key
+# Note: some indexes were removed by the cache load product itself,
+# so this script may produce some errors
+# but we want to flush out the deletion of any indexes
 date | tee -a ${SNPMARKER_LOG}
-echo "Drop indexes on ${ACC_TABLE}"  | tee -a ${LOG}
-echo "" | tee -a ${SNPMARKER_LOG}
+echo "drop indexes on ${ACC_TABLE}"  | tee -a ${LOG}
 ${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
 
+#
+# copy in ACC_TABLE, recreating indexes
+#
 date | tee -a ${SNPMARKER_LOG}
 echo "copy in  ${ACC_TABLE} " | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}

@@ -131,6 +131,14 @@ def deleteAccessions():
     numToDelete = int(results[1][0][0])
     sys.stdout.flush()
 
+    # drop indexes which are not needed by the select statements below
+    #db.sql('drop index snp.SNP_Accession_idx_clustered ;', None)
+    #db.sql('drop index snp.SNP_Accession_idx_Object_MGIType_key ;', None)
+    #db.sql('drop index snp.SNP_Accession_idx_accID ;', None)
+    #db.sql('drop index snp.SNP_Accession_idx_numericPart ;', None)
+    #db.sql('drop index snp.SNP_Accession_idx_prefixPart ;', None)
+    #sys.stdout.flush()
+
     # commands to accomplish the delete:
     cmds = []
     cmds.append('''CREATE TEMPORARY TABLE todelete
