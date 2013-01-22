@@ -198,7 +198,7 @@ cd ${CACHEDATADIR}
 
 #
 # drop indexes that are no needed/used by the SNPCACHELOAD
-# this will will make the ACC_TABLE deletion run much faster
+# this will make the ACC_TABLE deletion run much faster
 #
 date | tee -a ${SNPMARKER_LOG}
 echo "drop indexes on ${ACC_TABLE}"  | tee -a ${LOG}
