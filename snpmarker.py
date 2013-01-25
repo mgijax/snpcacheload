@@ -111,10 +111,11 @@ def initialize():
         AND _MGIType_key = %s 
         AND preferred = 1 ''' % (egLdbKey, mrkMgiTypeKey), 'auto' )
 
+    print 'count of marker/EG records %s\n' % (str(len(results[1])))
     for r in results[1]:
-	markerLookup[ r[0] ] = r[1] 
+	markerLookup[r[0]] = r[1] 
     
-    print 'connecting to %s..%s ...%s' % (server, database, NL)
+    print 'connected to %s..%s ...%s' % (server, database, NL)
     sys.stdout.flush()
 
 def deleteAccessions():
@@ -137,6 +138,7 @@ def deleteAccessions():
 	WHERE a._MGIType_key = %s 
 	AND a._LogicalDB_key = %s''' % (snpMkrMgiTypeKey, refSeqLdbKey), 'auto')
     numToDelete = int(results[1][0][0])
+    print 'count of SNP_Accession records: %s\n' % (str(numToDelete))
     sys.stdout.flush()
 
     # commands to accomplish the delete:
@@ -163,6 +165,17 @@ def deleteAccessions():
 	numToDelete = numToDelete - 1000000
 	db.sql('DROP TABLE todelete', None)
 	db.commit()
+
+    # for testing...
+    # after deletion, there should be 0 records left
+    # get the number of total accessions to delete
+    #results = db.sql('''SELECT COUNT(*) AS cacheCount 
+#	FROM SNP_Accession a
+#	WHERE a._MGIType_key = %s 
+#	AND a._LogicalDB_key = %s''' % (snpMkrMgiTypeKey, refSeqLdbKey), 'auto')
+    #numToDelete = int(results[1][0][0])
+    #print 'count of SNP_Accession records AFTER deletion: %s\n' % (str(numToDelete))
+    #sys.stdout.flush()
 
 def getMaxAccessionKey():
     # Purpose: get max(_Accession_key) from a snp database
@@ -203,8 +216,7 @@ def createBCP():
 	AND a._MGIType_key = %s 
 	AND a._LogicalDB_key = %s''' % (csMgiTypeKey, csLdbKey), None)
 
-    results = db.sql('''select count(*) as tmpCt
-	from snpmkr1''', 'auto')
+    results = db.sql('''select count(*) as tmpCt from snpmkr1''', 'auto')
     sys.stdout.flush()
 
     # create indexes
