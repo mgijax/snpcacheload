@@ -48,6 +48,8 @@
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
 #
+#  01/25/2013  lec  TR11248/TR10778 convert to postgres
+#
 #  04/20/2012  sc   TR10778 convert to postgres
 #
 #  09/01/2011  lec  TR10805/add _Organism_key = 1
@@ -75,9 +77,9 @@ DL = '|'
 CRT = '\n'
 NULL = ''
 
-LOCUS_REGION_TERM = 'Locus-Region'#.lower()
-UPSTREAM_TERM = 'Locus-Region (upstream)'#.lower()
-DOWNSTREAM_TERM = 'Locus-Region (downstream)'#.lower()
+LOCUS_REGION_TERM = 'Locus-Region'
+UPSTREAM_TERM = 'Locus-Region (upstream)'
+DOWNSTREAM_TERM = 'Locus-Region (downstream)'
 
 # _Term_key for 'Locus-Region' function class
 locusRegionKey = 0
@@ -127,20 +129,22 @@ def initialize():
     #
     #  Create a lookup for upstream/downstream function class terms.
     #
-    results = db.sql('''SELECT t._Term_key, t.term
-                FROM VOC_Term t
-                WHERE t._Vocab_key = 49
-                AND t.term IN ('%s', '%s') ''' %
-                   (UPSTREAM_TERM , DOWNSTREAM_TERM), 'auto' )
+    results = db.sql('''
+    	SELECT t._Term_key, t.term
+        FROM VOC_Term t
+        WHERE t._Vocab_key = 49
+        AND t.term IN ('%s', '%s') 
+	''' % (UPSTREAM_TERM , DOWNSTREAM_TERM), 'auto' )
 
     for r in results[1]:
         fxnLookup[r[1]] = r[0]
 
-    results = db.sql('''SELECT t._Term_key
-                    FROM VOC_Term t
-                    WHERE t.term = '%s'
-                    AND t._Vocab_key = 49 ''' % 
-			( LOCUS_REGION_TERM), 'auto')
+    results = db.sql('''
+    	SELECT t._Term_key
+        FROM VOC_Term t
+        WHERE t._Vocab_key = 49 
+        AND t.term = '%s'
+	''' % (LOCUS_REGION_TERM), 'auto')
 
     locusRegionKey = results[1][0]
 
@@ -184,23 +188,24 @@ def createBCPFile():
     print 'Get locus-region SNP/marker annotations'
     sys.stdout.flush()
 
-    results = db.sql('SELECT sm._ConsensusSnp_Marker_key, ' + \
-                      'sc.startCoordinate as snpStart, ' + \
-                      'mc.startCoordinate as markerStart, ' + \
-                      'mc.endCoordinate as markerEnd, ' + \
-                      'mc.strand as markerStrand ' + \
-               'FROM SNP_ConsensusSnp_Marker sm, ' + \
-                    'SNP_Coord_Cache sc, ' + \
-                    'MRK_Location_Cache mc ' + \
-               'WHERE sm._ConsensusSnp_key = sc._ConsensusSnp_key ' + \
-                     'AND sm._Coord_Cache_key = sc._Coord_Cache_key ' + \
-                     'AND sm._Marker_key = mc._Marker_key ' + \
-		     'AND mc._Organism_key = 1 ' + \
-                     'AND sm._Fxn_key = %s ' % locusRegionKey + \
-                     'AND mc.startCoordinate IS NOT NULL ' + \
-                     'AND mc.endCoordinate IS NOT NULL ' + \
-                     'AND mc.strand IS NOT NULL', 'auto')
-
+    results = db.sql('''
+    	SELECT sm._ConsensusSnp_Marker_key, 
+        	sc.startCoordinate as snpStart, 
+        	mc.startCoordinate as markerStart, 
+        	mc.endCoordinate as markerEnd, 
+        	mc.strand as markerStrand 
+        FROM SNP_ConsensusSnp_Marker sm, 
+                SNP_Coord_Cache sc, 
+                MRK_Location_Cache mc 
+        WHERE sm._ConsensusSnp_key = sc._ConsensusSnp_key 
+                AND sm._Coord_Cache_key = sc._Coord_Cache_key 
+                AND sm._Marker_key = mc._Marker_key 
+		AND mc._Organism_key = 1 
+                AND sm._Fxn_key = %s 
+                AND mc.startCoordinate IS NOT NULL 
+                AND mc.endCoordinate IS NOT NULL 
+                AND mc.strand IS NOT NULL
+		''' % (locusRegionKey), 'auto')
 
     print 'Create the bcp file'
     sys.stdout.flush()
@@ -216,6 +221,7 @@ def createBCPFile():
 	# Note: marker start coordinates in MGI are always < end coordinates
         if snpStart >= markerStart and snpStart <= markerEnd:
 	    continue
+
 	# if the marker straind in '+' determine fxn class accordingly
 	elif markerStrand == '+':
 	    # if snpStart < markerStart, the SNP is considered to be upstream
@@ -234,6 +240,7 @@ def createBCPFile():
 	    elif snpStart > markerStart:
                 fxnKey = fxnLookup[UPSTREAM_TERM]
 	fpTmpFxn.write(str(primaryKey) + DL + str(fxnKey) + CRT)
+
     #
     #  Close the bcp file.
     #
@@ -253,9 +260,12 @@ def loadBCPFile():
 
     print 'Create the temp table'
     sys.stdout.flush()
-    db.sql('CREATE TEMPORARY TABLE ' + tmpFxnTable + ' ' + \
-           '(_ConsensusSnp_Marker_key int not null, ' + \
-            '_Fxn_key int not null)', None)
+    db.sql('''
+    	CREATE TEMPORARY TABLE %s
+        (_ConsensusSnp_Marker_key int not null,
+         _Fxn_key int not null
+	)
+	''' % (tmpFxnTable), None)
 
     print 'Load the bcp file into the temp table'
     sys.stdout.flush()
@@ -266,10 +276,9 @@ def loadBCPFile():
 
     print 'Create indexes on the temp table'
     sys.stdout.flush()
-    db.sql('create index idx1 on ' + tmpFxnTable + ' ' + \
-           '(_ConsensusSnp_Marker_key)', 'auto')
-    db.sql('create index idx2 on ' + tmpFxnTable + ' ' + \
-           '(_Fxn_key)', 'auto')
+    db.sql('CREATE index idx1 on %s (_ConsensusSnp_Marker_key)' % (tmpFxnTable), None)
+    db.sql('CREATE index idx2 on %s (_Fxn_key)' % (tmpFxnTable), None)
+
 # Purpose: Update the function classes using the keys in the temp table.
 # Returns: Nothing
 # Assumes: Nothing
@@ -282,13 +291,18 @@ def applyUpdates():
     print 'Update the function classes'
     sys.stdout.flush()
 
-    db.sql('UPDATE SNP_ConsensusSnp_Marker sm ' + \
-           'SET _Fxn_key = t._Fxn_key ' + \
-           'FROM ' + tmpFxnTable + ' t ' + \
-           'WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key', 'auto')
-    results = db.sql('select t.* ' + \
-		'from SNP_ConsensusSnp_Marker sm, ' + tmpFxnTable + ' t ' + \
-		'WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key', 'auto')
+    db.sql('''
+    	UPDATE SNP_ConsensusSnp_Marker sm 
+        SET _Fxn_key = t._Fxn_key 
+        FROM %s t
+        WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key
+	''' % (tmpFxnTable), 'auto')
+
+    results = db.sql('''
+    	SELECT t.* 
+	FROM SNP_ConsensusSnp_Marker sm, %s t
+	WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key
+	''' % (tmpFxnTable), 'auto')
 
 #
 #  MAIN
