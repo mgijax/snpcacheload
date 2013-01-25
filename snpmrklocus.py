@@ -145,7 +145,6 @@ def initialize():
         WHERE t._Vocab_key = 49 
         AND t.term = '%s'
 	''' % (LOCUS_REGION_TERM), 'auto')
-
     locusRegionKey = results[1][0]
 
     #
