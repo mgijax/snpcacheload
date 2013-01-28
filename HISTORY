@@ -1,9 +1,9 @@
-TAG: snpcacheload-postgres-?
+TAG: snpcacheload-postgres-5-1-4-x
 DATE: 01/22/2013
 STAFF: lec
 CHANGES:
 1) TR11248/TR10788
-posgres conversion
+postgres conversion
 
 TAG: snpcacheload-postgres-3
 TAG: snpcacheload-postgres-2
