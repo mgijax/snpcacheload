@@ -425,6 +425,7 @@ def processSNPregion(chr, startCoord, endCoord):
 	sys.stdout.flush()
 
 	# query to fill Markers
+	# AND mc.chromosome = '%s' 
 	Markers = db.sql('''
 	        SELECT mc._Marker_key, 
 		       mc.startCoordinate as markerStart,
@@ -433,7 +434,7 @@ def processSNPregion(chr, startCoord, endCoord):
 		FROM MRK_Location_Cache mc 
 		WHERE mc._Marker_Type_key != %s 
 		AND mc._Organism_key = 1
-		AND mc.chromosome = '%s' 
+		AND mc.genomicchromosome = '%s' 
 		AND mc.endCoordinate >= %s 
 		AND mc.startCoordinate <= %s
 		''' % (MRKR_QTLTYPE_KEY, chr, startCoord-MARKER_PAD, endCoord+MARKER_PAD), 'auto')
