@@ -148,7 +148,7 @@ def deleteAccessions():
 	FROM SNP_Accession
 	WHERE _MGIType_key = %s
 	AND _LogicalDB_key = %s
-	LIMIT 1000000''' % (snpMkrMgiTypeKey, refSeqLdbKey))
+	LIMIT 10000''' % (snpMkrMgiTypeKey, refSeqLdbKey))
     cmds.append('CREATE INDEX idx1 on todelete(_Accession_key)')
     cmds.append('''DELETE FROM SNP_Accession a
 	USING todelete d
@@ -162,20 +162,20 @@ def deleteAccessions():
 	db.commit()
 	results = db.sql('SELECT count(*) AS delCount FROM todelete', 'auto')
 	sys.stdout.flush()
-	numToDelete = numToDelete - 1000000
+	numToDelete = numToDelete - 10000
 	db.sql('DROP TABLE todelete', None)
 	db.commit()
 
     # for testing...
     # after deletion, there should be 0 records left
     # get the number of total accessions to delete
-    #results = db.sql('''SELECT COUNT(*) AS cacheCount 
-#	FROM SNP_Accession a
-#	WHERE a._MGIType_key = %s 
-#	AND a._LogicalDB_key = %s''' % (snpMkrMgiTypeKey, refSeqLdbKey), 'auto')
-    #numToDelete = int(results[1][0][0])
-    #print 'count of SNP_Accession records AFTER deletion: %s\n' % (str(numToDelete))
-    #sys.stdout.flush()
+    results = db.sql('''SELECT COUNT(*) AS cacheCount 
+	FROM SNP_Accession a
+	WHERE a._MGIType_key = %s 
+	AND a._LogicalDB_key = %s''' % (snpMkrMgiTypeKey, refSeqLdbKey), 'auto')
+    numToDelete = int(results[1][0][0])
+    print 'count of SNP_Accession records AFTER deletion: %s\n' % (str(numToDelete))
+    sys.stdout.flush()
 
 def getMaxAccessionKey():
     # Purpose: get max(_Accession_key) from a snp database
