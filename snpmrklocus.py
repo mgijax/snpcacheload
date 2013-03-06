@@ -138,6 +138,7 @@ def initialize():
 
     for r in results[1]:
         fxnLookup[r[1]] = r[0]
+    print fxnLookup
 
     results = db.sql('''
     	SELECT t._Term_key
@@ -146,6 +147,7 @@ def initialize():
         AND t.term = '%s'
 	''' % (LOCUS_REGION_TERM), 'auto')
     locusRegionKey = results[1][0]
+    print locusRegionKey
 
     #
     #  Open the bcp file.
