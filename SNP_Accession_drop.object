@@ -19,13 +19,6 @@ cd `dirname $0` && . ./Configuration
 
 cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0
 
--- to-be obsoleted per TR11248
-drop index snp.SNP_Accession_Object_key
-;
-drop index snp.SNP_Accession_Accession_key
-;
--- end obsolete
-
 drop index snp.SNP_Accession_idx_clustered
 ;
 
