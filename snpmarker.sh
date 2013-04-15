@@ -221,9 +221,10 @@ fi
 # Note: we can't drop the index of the primary key because it is constraint 
 # on the primary key
 date | tee -a ${SNPMARKER_LOG}
-echo "Truncate and drop indexes on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
+echo "Truncate and drop indexes/keys on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
 ${PG_SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object >> ${SNPMARKER_LOG} 2>&1
 ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
 
 date | tee -a ${SNPMARKER_LOG}
 echo "copy in  ${SNP_MRK_TABLE}" | tee -a ${SNPMARKER_LOG}
@@ -238,9 +239,10 @@ then
 fi
 
 date | tee -a ${SNPMARKER_LOG}
-echo "Create index on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
+echo "Create index/key on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
 ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
 
 # Note: we can't drop the index of the primary key because it is constraint 
 # on the primary key
