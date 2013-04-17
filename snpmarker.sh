@@ -253,9 +253,6 @@ date | tee -a ${SNPMARKER_LOG}
 echo "Create index/key on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
 ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
-${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
-${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_create.object >> ${SNPMARKER_LOG} 2>&1
-${PG_SNP_DBSCHEMADIR}/key/SNP_Coord_Cache_create.object >> ${SNPMARKER_LOG} 2>&1
 
 # Note: we can't drop the index of the primary key because it is constraint 
 # on the primary key
@@ -355,5 +352,16 @@ then
     echo "" | tee -a ${SNPMARKER_LOG}
     ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object
 fi
+
+#
+# re-create keys at the end
+#
+date | tee -a ${SNPMARKER_LOG}
+echo "Create key on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
+echo "" | tee -a ${SNPMARKER_LOG}
+${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_create.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/key/SNP_Coord_Cache_create.object >> ${SNPMARKER_LOG} 2>&1
+
 date | tee -a ${SNPMARKER_LOG}
 
