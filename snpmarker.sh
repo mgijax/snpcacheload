@@ -16,6 +16,15 @@
 #             -c is an option to clean output directory
 #             -l is an option to clean logs directory
 #
+# Approximate times:
+#
+# only 4 SNP_Accession/indexs are dropped; 3 remain because they are used
+# in querying the data (see SNP_Accession_drop.object)
+#
+# 1) to build the SNP_Accession indexes (4): 1 hour (or less)
+# 2) to build the SNP_Accession cluster (1): 1 hour
+# question: do we need the SNP_Accession cluster???
+#
 # History
 #
 # lec	01/21/2013
