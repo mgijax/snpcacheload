@@ -1,0 +1,34 @@
+#!/bin/sh
+
+#
+# History
+#
+# 01/22/2013	lec
+#	- TR10788/TR11248
+#	- drop indexes that are unnecessary for the purposes of the snpcacheload
+#	- this will help speed-up the snpcacheload/delete of SNP_Accession data
+#	- having a problem running these "drop index" scripts from within the python/postgres/execution
+#
+# 03/01/2006	lec
+#	- TR 7450; new
+#
+#
+
+cd `dirname $0` && . ./Configuration
+
+
+cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0
+
+drop index snp.SNP_Accession_idx_clustered
+;
+
+drop index snp.SNP_Accession_idx_Object_MGIType_key
+;
+
+drop index snp.SNP_Accession_idx_numericPart
+;
+
+drop index snp.SNP_Accession_idx_prefixPart
+;
+
+EOSQL

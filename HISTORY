@@ -31,7 +31,6 @@ STAFF: sc
 CHANGES:
 1) updated to postgres
 
->>>>>>> 1.37.2.6
 TAG: snpcacheload-postgres-BP
 DATE: 05/18/2012
 STAFF: sc

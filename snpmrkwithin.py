@@ -45,6 +45,7 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  01/25/2013  lec  TR11248/10788 - conversion to postgres
 #  09/01/2011  lec  TR10805/add _Organism_key = 1
 #  06/30/2006  lec  modified for mgiconfig
 #  05/17/2006  sc   add case for null strand (MIT markers, unistsload)
@@ -60,8 +61,9 @@ import sys
 import os
 import string
 import time
-import db
 import loadlib
+import pg_db
+db = pg_db
 
 #
 # exceptions
@@ -78,11 +80,10 @@ DL = '|'
 CRT = '\n'
 NULL = ''
 
-FNCT_CLASS_VOCAB = 'SNP Function Class'
 WITHIN_COORD_TERM = 'within coordinates of'
 WITHIN_KB_TERM = 'within %s kb %s of'
 
-MARKER_PAD      = 1000000	# max number of BP away a SNP can be from a
+MARKER_PAD      = 1000000	# max number of BP away a SNP can be FROM a
 				#  marker to compute a SNP-marker association
 
 # max number of SNPs in chr region to process at at time
@@ -116,6 +117,12 @@ fxnLookup = {}
 # list of chromosomes to process
 chrList = []
 
+# database environment variables
+server = os.environ['PG_DBSERVER']
+database = os.environ['PG_DBNAME']
+passwdfile = os.environ['PG_DBPASSWORDFILE']
+user = os.environ['PG_DBUSER']
+
 # next available _SNP_ConsensusSnp_Marker_key
 primaryKey = None
 
@@ -148,63 +155,47 @@ def initialize():
     fileName = os.environ['SNP_MRK_WITHIN_FILE']
     snpMrkFile = '%s/%s' % (dataDir, fileName)
 
-    dbServer = os.environ['MGD_DBSERVER']
-    dbName = os.environ['MGD_DBNAME']
-    dbUser = os.environ['MGD_DBUSER']
-    snpDbServer = os.environ['SNPBE_DBSERVER']
-    snpDbName = os.environ['SNPBE_DBNAME']
-    snpDbUser = os.environ['SNPBE_DBUSER']
-
-    dbPasswordFile = os.environ['SNPBE_DBPASSWORDFILE']
-    dbPassword = string.strip(open(dbPasswordFile,'r').readline())
+    password = db.get_sqlPassword()
 
     #
     #  Set up a connection to the mgd database.
     #
     db.useOneConnection(1)
-    db.set_sqlLogin(dbUser, dbPassword, dbServer, dbName)
+    db.set_sqlLogin(user, password, server, database)
+    db.setReturnAsSybase(False)
+    db.setAutoTranslate(False)
 
     #
-    #  Create a lookup for upstream/downstream function class terms.
+    #  Create a lookup for within* function class terms.
     #
-    results = db.sql('select t._Term_key, t.term ' + \
-                     'from VOC_Vocab v, VOC_Term t ' + \
-                     'where v.name = "' + FNCT_CLASS_VOCAB + '" and ' + \
-                           'v._Vocab_key = t._Vocab_key and ' + \
-                           't.term like "within % of"', 'auto')
+    results = db.sql('''
+        SELECT t._Term_key, t.term 
+	FROM VOC_Term t 
+	WHERE t._Vocab_key = 49
+	AND t.term LIKE 'within % of' 
+	''', 'auto')
 
-    for r in results:
-        fxnLookup[r['term']] = r['_Term_key']
+    for r in results[1]:
+	fxnLookup[r[1]] = r[0]
 
-    # close connection to the mgd database
-    db.useOneConnection(0)
-
-    #
-    #  Set up a connection to the snp database.
-    #
-    db.useOneConnection(1)
-    db.set_sqlLogin(snpDbUser, dbPassword, snpDbServer, snpDbName)
- 
     #
     #  Create of list of chromosomes.
     #
-    results = db.sql('select distinct chromosome from SNP_Coord_Cache', 'auto')
+    results = db.sql('SELECT DISTINCT chromosome FROM SNP_Coord_Cache', 'auto')
 
-    for r in results:
-        chrList.append(r['chromosome'])
+    for r in results[1]:
+        chrList.append(r[0])
 
     #
     #  Get the max primary key for the SNP_ConsensusSnp_Marker table
     #
-    results = db.sql('select max(_ConsensusSnp_Marker_key) + 1 "key" ' + \
-                     'from SNP_ConsensusSnp_Marker', 'auto')
-
-    primaryKey = results[0]['key']
-    print 'primaryKey: %s' % primaryKey 
+    results = db.sql('''SELECT MAX(_ConsensusSnp_Marker_key) as key
+                     FROM SNP_ConsensusSnp_Marker''', 'auto')
+    primaryKey = results[1][0][0]
     if primaryKey == None:
-	sys.stderr.write('SNP_ConsensusSnp_Marker table is ' + \
-              'empty, load dbSNP Marker associations first')
+	sys.stderr.write('SNP_ConsensusSnp_Marker table is empty, load dbSNP Marker associations first')
         sys.exit(1)
+    primaryKey += 1
     openBCPFile()
 
     return
@@ -226,13 +217,13 @@ def process():
     #
     for chr in chrList:
 	
-	MAX_COORD_QUERY = 'select max(startCoordinate) as maxCoord ' + \
-                'from SNP_Coord_Cache ' + \
-                'where chromosome = "%s"'
-
 	print '%sQuery for max SNP coordinate on chr %s' % (CRT, chr)
-	results = db.sql(MAX_COORD_QUERY % chr, 'auto')
-	maxCoord = int(results[0]['maxCoord'])
+	results = db.sql('''
+	        SELECT MAX(startCoordinate) as maxCoord 
+                FROM SNP_Coord_Cache 
+                WHERE chromosome = '%s' 
+		''' % (chr), 'auto')
+	maxCoord = (results[1][0][0])
 	print 'Max coord on chr %s %s' % (chr, maxCoord)
 	print 'Get SNP/marker pairs for chromosome %s' % chr
 	sys.stdout.flush()
@@ -293,13 +284,14 @@ def openBCPFile():
 
 def binProcess(chr, startCoord, endCoord):
 
-	NUM_SNP_QUERY = 'select count(_ConsensusSnp_key) as snpCount ' + \
-                'from SNP_Coord_Cache ' + \
-                'where chromosome = "%s"' + \
-                'and startCoordinate between %s and %s'
+	results = db.sql('''
+	        SELECT COUNT(_ConsensusSnp_key) as snpCount 
+                FROM SNP_Coord_Cache 
+                WHERE chromosome = '%s'
+                AND startCoordinate BETWEEN %s AND %s
+		''' % (chr, startCoord, endCoord), 'auto')
 
-	results = db.sql(NUM_SNP_QUERY % (chr, startCoord, endCoord), 'auto' )
-	snpCount = results[0]['snpCount']
+	snpCount = results[1][0][0]
 	print 'Total snp coordinates on chr %s between coord %s and %s is %s' \
 				% (chr, startCoord, endCoord, snpCount)
 	sys.stdout.flush()
@@ -410,91 +402,82 @@ def processSNPregion(chr, startCoord, endCoord):
 	#       for SNPs in the SNPregion that are already associated by
 	#	dbSNP associations
 
-	# query to fill SNPlist
-	SNPQUERY = 'select sc._ConsensusSnp_key, ' + \
-		       'sc._Coord_Cache_key, ' + \
-		       'sc.startCoordinate "snpLoc" ' + \
-		'from SNP_Coord_Cache sc ' + \
-		'where sc.chromosome = "%s" ' + \
-		'and sc.startCoordinate between %s and %s ' + \
-		'order by sc.startCoordinate'
-
-	print 'SNPlist Query start time: %s' \
-		    % time.strftime("%H.%M.%S.%m.%d.%y",  \
-		    time.localtime(time.time()))
+	print 'SNPlist Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
 	sys.stdout.flush()
-	SNPlist = db.sql(SNPQUERY % (chr, startCoord, endCoord), 'auto')
+
+	# query to fill SNPlist
+	SNPs = db.sql('''
+	        SELECT sc._ConsensusSnp_key,
+		       sc._Coord_Cache_key, 
+		       sc.startCoordinate as snpLoc
+		FROM SNP_Coord_Cache sc 
+		WHERE sc.chromosome = '%s' 
+		AND sc.startCoordinate BETWEEN %s AND %s 
+		ORDER BY sc.startCoordinate
+		''' % (chr, startCoord, endCoord), 'auto')
+	SNPlist = SNPs[1]
 	print 'SNPlist Query end time: %s' \
 		    % time.strftime("%H.%M.%S.%m.%d.%y",  \
 		    time.localtime(time.time()))
 	sys.stdout.flush()
 
-	# query to fill Markers
-	MARKERQUERY = 'select mc._Marker_key, ' + \
-		       'mc.startCoordinate "markerStart", ' + \
-		       'mc.endCoordinate "markerEnd", ' + \
-		       'mc.strand "markerStrand" ' + \
-		'from MRK_Location_Cache mc ' + \
-		'where mc._Organism_key = 1 and ' + \
-		      'mc._Marker_Type_key != %s and ' % MRKR_QTLTYPE_KEY + \
-		      'mc.chromosome = "%s" and ' + \
-		      'mc.endCoordinate >= %s and ' + \
-		      'mc.startCoordinate <= %s '
-
-	print 'Marker Query start time: %s' \
-		    % time.strftime("%H.%M.%S.%m.%d.%y",  \
-		    time.localtime(time.time()))
+	print 'Marker Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
 	sys.stdout.flush()
-	Markers = db.sql(MARKERQUERY \
-		% (chr, startCoord-MARKER_PAD, endCoord+MARKER_PAD), 'auto')
-	print 'Marker Query end time: %s' \
-		    % time.strftime("%H.%M.%S.%m.%d.%y",  \
-		    time.localtime(time.time()))
+
+	# query to fill Markers
+	# AND mc.chromosome = '%s' 
+	Markers = db.sql('''
+	        SELECT mc._Marker_key, 
+		       mc.startCoordinate as markerStart,
+		       mc.endCoordinate as markerEnd, 
+		       mc.strand as markerStrand 
+		FROM MRK_Location_Cache mc 
+		WHERE mc._Marker_Type_key != %s 
+		AND mc._Organism_key = 1
+		AND mc.genomicchromosome = '%s' 
+		AND mc.endCoordinate >= %s 
+		AND mc.startCoordinate <= %s
+		''' % (MRKR_QTLTYPE_KEY, chr, startCoord-MARKER_PAD, endCoord+MARKER_PAD), 'auto')
+
+	print 'Marker Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
+	sys.stdout.flush()
+
+	print 'ExcludeList Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
 	sys.stdout.flush()
 
 	# query to get ExcludeList
-	EXCLUDEQUERY = 'select cm._ConsensusSnp_key, ' + \
-		       'cm._Marker_key ' + \
-		'from SNP_Coord_Cache sc, ' + \
-		     'SNP_ConsensusSnp_Marker cm ' + \
-		'where sc.chromosome = "%s" ' + \
-		      'and sc.startCoordinate between %s and %s ' + \
-		      'and sc._ConsensusSnp_key = cm._ConsensusSnp_key '
+	ExcludeList = db.sql('''
+	        SELECT cm._ConsensusSnp_key, 
+		       cm._Marker_key 
+		FROM SNP_Coord_Cache sc, SNP_ConsensusSnp_Marker cm 
+		WHERE sc.chromosome = '%s'
+		AND sc.startCoordinate BETWEEN %s AND %s 
+		AND sc._ConsensusSnp_key = cm._ConsensusSnp_key
+		''' % (chr, startCoord, endCoord), 'auto')
 
-	print 'ExcludeList Query start time: %s' \
-		    % time.strftime("%H.%M.%S.%m.%d.%y",  \
-		    time.localtime(time.time()))
-	sys.stdout.flush()
-
-	ExcludeList =db.sql(EXCLUDEQUERY % (chr, startCoord, endCoord), 'auto')
-
-	print 'ExcludeList Query end time: %s' \
-		    % time.strftime("%H.%M.%S.%m.%d.%y",  \
-		    time.localtime(time.time()))
+	print 'ExcludeList Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
 	sys.stdout.flush()
 
 	ExcludeDict = {}	# empty the exclude list
-	for r in ExcludeList:
-	    ExcludeDict[(r['_ConsensusSnp_key'],r['_Marker_key'])] = 1
+	for r in ExcludeList[1]:
+	    ExcludeDict[(r[0],r[1])] = 1
 
 	#
 	#  Process each SNP on SNPlist
 	#
-	print 'Process SNPlist start time: %s' \
-                    % time.strftime("%H.%M.%S.%m.%d.%y",  \
-                    time.localtime(time.time()))
+	print 'Process SNPlist start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
 	sys.stdout.flush()
 	idxLastSnp = len(SNPlist)-1	# index of last SNP in SNPlist
 	prevSnpIdx = 0			# index of SNP found on prev iteration
 					# (start binary search from there)
-	for curMarker in Markers:
-	    markerKey   = curMarker['_Marker_key']
-	    markerStart = curMarker['markerStart']
-	    markerEnd   = curMarker['markerEnd']
+	for curMarker in Markers[1]:
+	    markerKey   = curMarker[0]
+	    markerStart = curMarker[1]
+	    markerEnd   = curMarker[2]
 
 	    # use binary search to find the index in SNPlist of the
 	    #  farthest "right" SNP to consider for this marker
-	    snpIdx = listBinarySearch(SNPlist, 'snpLoc', \
+	    snpIdx = listBinarySearch(SNPlist, 2, \
 		markerEnd+MARKER_PAD, prevSnpIdx, idxLastSnp)
 	    # iterate backward through the SNPs from snpIdx and
 	    #  process SNP-Marker pairs.
@@ -502,17 +485,15 @@ def processSNPregion(chr, startCoord, endCoord):
 
 	    i = snpIdx
 	    leftmostCoord = markerStart-MARKER_PAD
-	    while (i >= 0 and SNPlist[i]['snpLoc'] >= leftmostCoord):
+	    while (i >= 0 and SNPlist[i][2] >= leftmostCoord):
 
 		if ( not ExcludeDict.has_key( \
-			(SNPlist[i]['_ConsensusSnp_key'], markerKey))):
+			(SNPlist[i][0], markerKey))):
 		    processSNPmarkerPair(SNPlist[i], curMarker)
 		i = i-1
 	    # prevSnpIdx = snpIdx
 	    # end SNP loop
-        print 'Process SNPlist end time: %s' \
-                    % time.strftime("%H.%M.%S.%m.%d.%y",  \
-                    time.localtime(time.time()))	
+        print 'Process SNPlist end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))	
 	sys.stdout.flush()
 	return
 
@@ -536,15 +517,15 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     global primaryKey
 
     #KB_DISTANCE = [ 2, 10, 100, 500, 1000 ]
+    
+    markerStart  = marker[1]
+    markerEnd    = marker[2]
+    markerStrand = marker[3]
+    markerKey    = marker[0]
 
-    markerStart  = marker['markerStart']
-    markerEnd    = marker['markerEnd']
-    markerStrand = marker['markerStrand']
-    markerKey    = marker['_Marker_key']
-
-    snpLoc = snp['snpLoc']
-    snpKey = snp['_ConsensusSnp_key']
-    featureKey = snp['_Coord_Cache_key']
+    snpLoc = snp[2]
+    snpKey = snp[0]
+    featureKey = snp[1]
 
     fxnKey = -1
     #

@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/local/bin/python -x
 
 #  snpmrklocus.py
 ###########################################################################
@@ -47,6 +47,11 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#
+#  01/25/2013  lec  TR11248/TR10778 convert to postgres
+#
+#  04/20/2012  sc   TR10778 convert to postgres
+#
 #  09/01/2011  lec  TR10805/add _Organism_key = 1
 #
 #  06/30/2006  lec  modified for mgiconfig
@@ -60,9 +65,10 @@
 import sys
 import os
 import string
-import db
 import loadlib
-
+import pg_db
+db = pg_db
+import StringIO
 #
 #  CONSTANTS
 #
@@ -71,13 +77,22 @@ DL = '|'
 CRT = '\n'
 NULL = ''
 
-FNCT_CLASS_VOCAB = 'SNP Function Class'
 LOCUS_REGION_TERM = 'Locus-Region'
 UPSTREAM_TERM = 'Locus-Region (upstream)'
 DOWNSTREAM_TERM = 'Locus-Region (downstream)'
 
 # _Term_key for 'Locus-Region' function class
 locusRegionKey = 0
+
+# database environment variables
+server = os.environ['PG_DBSERVER']
+database = os.environ['PG_DBNAME']
+passwdfile = os.environ['PG_DBPASSWORDFILE']
+user = os.environ['PG_DBUSER']
+
+# lookup to resolve function class string to key
+fxnLookup = {}
+
 #
 #  FUNCTIONS
 #
@@ -90,7 +105,6 @@ locusRegionKey = 0
 
 def initialize():
     global locusRegionKey
-    global snpDbServer, snpDbUser, dbPasswordFile
     global fxnLookup
     global tmpFxnTable, tmpFxnFile, fpTmpFxn
 
@@ -104,52 +118,37 @@ def initialize():
     tmpFxnTable = os.environ['TMP_FXN_TABLE']
     tmpFxnFile = dataDir + '/' + os.environ['TMP_FXN_FILE']
 
-    mgdDbServer = os.environ['MGD_DBSERVER']
-    mgdDbName = os.environ['MGD_DBNAME']
-    mgdDbUser = os.environ['MGD_DBUSER']
-    snpDbServer = os.environ['SNPBE_DBSERVER']
-    snpDbName = os.environ['SNPBE_DBNAME']
-    snpDbUser = os.environ['SNPBE_DBUSER']
-
-    dbPasswordFile = os.environ['SNPBE_DBPASSWORDFILE']
-    dbPassword = string.strip(open(dbPasswordFile,'r').readline())
-
+    password = db.get_sqlPassword()
     #
     #  Set up a connection to the mgd database.
     #
     db.useOneConnection(1)
-    db.set_sqlLogin(mgdDbUser, dbPassword, mgdDbServer, mgdDbName)
-
+    db.set_sqlLogin(user, password, server, database)
+    db.setReturnAsSybase(False)
+    db.setAutoTranslate(False)
     #
     #  Create a lookup for upstream/downstream function class terms.
     #
-    cmds = []
-    cmds.append('select t._Term_key, t.term ' + \
-                     'from VOC_Vocab v, VOC_Term t ' + \
-                     'where v.name = "%s" ' % FNCT_CLASS_VOCAB + \
-                           'and v._Vocab_key = t._Vocab_key ' + \
-                           'and t.term in ("%s", "%s") ' % (UPSTREAM_TERM , DOWNSTREAM_TERM) )
-    cmds.append('select t._Term_key ' + \
-		    'from VOC_Term t, VOC_Vocab v ' + \
-		    'where t.term = "%s" ' % LOCUS_REGION_TERM + \
-                    'and t._Vocab_key = v._Vocab_key ' + \
-                    'and v.name = "%s"' % FNCT_CLASS_VOCAB)
+    results = db.sql('''
+    	SELECT t._Term_key, t.term
+        FROM VOC_Term t
+        WHERE t._Vocab_key = 49
+        AND t.term IN ('%s', '%s') 
+	''' % (UPSTREAM_TERM , DOWNSTREAM_TERM), 'auto' )
 
-    results = db.sql(cmds, 'auto')
+    for r in results[1]:
+        fxnLookup[r[1]] = r[0]
+    print fxnLookup
 
-    fxnLookup = {}
-    for r in results[0]:
-        fxnLookup[r['term']] = r['_Term_key']
-    locusRegionKey = results[1][0]['_Term_key']
-    # close connection to the mgd database
-    db.useOneConnection(0)
+    results = db.sql('''
+    	SELECT t._Term_key
+        FROM VOC_Term t
+        WHERE t._Vocab_key = 49 
+        AND t.term = '%s'
+	''' % (LOCUS_REGION_TERM), 'auto')
+    locusRegionKey = results[1][0]
+    print locusRegionKey
 
-    #
-    #  Set up a connection to the snp database.
-    #
-    db.useOneConnection(1)
-    db.set_sqlLogin(snpDbUser, dbPassword, snpDbServer, snpDbName)
-    
     #
     #  Open the bcp file.
     #
@@ -169,12 +168,6 @@ def initialize():
 # Throws: Nothing
 
 def finalize():
-    global tmpFxnTable
-
-    print 'Drop the temp table'
-    sys.stdout.flush()
-
-    db.sql('drop table tempdb..' + tmpFxnTable, 'auto')
 
     db.useOneConnection(0)
 
@@ -196,46 +189,40 @@ def createBCPFile():
     print 'Get locus-region SNP/marker annotations'
     sys.stdout.flush()
 
-    cmd = []
-    cmd.append('select sm._ConsensusSnp_Marker_key, ' + \
-                      'sc.startCoordinate "snpStart", ' + \
-                      'mc.startCoordinate "markerStart", ' + \
-                      'mc.endCoordinate "markerEnd", ' + \
-                      'mc.strand "markerStrand" ' + \
-               'from SNP_ConsensusSnp_Marker sm, ' + \
-                    'SNP_Coord_Cache sc, ' + \
-                    'MRK_Location_Cache mc ' + \
-               'where sm._ConsensusSnp_key = sc._ConsensusSnp_key ' + \
-                     'and sm._Coord_Cache_key = sc._Coord_Cache_key ' + \
-                     'and sm._Marker_key = mc._Marker_key ' + \
-		     'and mc._Organism_key = 1 ' + \
-                     'and sm._Fxn_key = %s ' % locusRegionKey + \
-                     'and mc.startCoordinate is not null ' + \
-                     'and mc.endCoordinate is not null ' + \
-                     'and mc.strand is not null')
-
-    results = db.sql(cmd, 'auto')
+    results = db.sql('''
+    	SELECT sm._ConsensusSnp_Marker_key, 
+        	sc.startCoordinate as snpStart, 
+        	mc.startCoordinate as markerStart, 
+        	mc.endCoordinate as markerEnd, 
+        	mc.strand as markerStrand 
+        FROM SNP_ConsensusSnp_Marker sm, 
+                SNP_Coord_Cache sc, 
+                MRK_Location_Cache mc 
+        WHERE sm._ConsensusSnp_key = sc._ConsensusSnp_key 
+                AND sm._Coord_Cache_key = sc._Coord_Cache_key 
+                AND sm._Marker_key = mc._Marker_key 
+		AND mc._Organism_key = 1 
+                AND sm._Fxn_key = %s 
+                AND mc.startCoordinate IS NOT NULL 
+                AND mc.endCoordinate IS NOT NULL 
+                AND mc.strand IS NOT NULL
+		''' % (locusRegionKey), 'auto')
 
     print 'Create the bcp file'
     sys.stdout.flush()
 
-    for r in results[0]:
-        primaryKey = r['_ConsensusSnp_Marker_key']
-        snpStart = r['snpStart']
-        markerStart = r['markerStart']
-        markerEnd = r['markerEnd']
-        markerStrand = r['markerStrand']
+    for r in results[1]:
+        primaryKey = r[0]
+        snpStart = r[1]
+        markerStart = r[2]
+        markerEnd = r[3]
+        markerStrand = r[4]
 
 	# if snp *within* the marker, do not update
 	# Note: marker start coordinates in MGI are always < end coordinates
         if snpStart >= markerStart and snpStart <= markerEnd:
-	    #print 'snpStart %s' % snpStart
-	    #print 'markerStart %s' % markerStart
-            #print 'markerEnd %s' % markerEnd
-            #print 'strand %s' % markerStrand
-            #print '_CS_Marker_key %s' % primaryKey
- 	    #print '' 
 	    continue
+
 	# if the marker straind in '+' determine fxn class accordingly
 	elif markerStrand == '+':
 	    # if snpStart < markerStart, the SNP is considered to be upstream
@@ -270,29 +257,28 @@ def createBCPFile():
 # Throws: Nothing
 
 def loadBCPFile():
-    global snpDbServer, snpDbUser, dbPasswordFile
     global tmpFxnTable, tmpFxnFile
 
     print 'Create the temp table'
     sys.stdout.flush()
-    db.sql('create table tempdb..' + tmpFxnTable + ' ' + \
-           '(_ConsensusSnp_Marker_key int not null, ' + \
-            '_Fxn_key int not null)', 'auto')
+    db.sql('''
+    	CREATE TEMPORARY TABLE %s
+        (_ConsensusSnp_Marker_key int not null,
+         _Fxn_key int not null
+	)
+	''' % (tmpFxnTable), None)
 
     print 'Load the bcp file into the temp table'
     sys.stdout.flush()
-    bcpCmd = 'cat ' + dbPasswordFile + \
-             ' | bcp tempdb..' + tmpFxnTable + ' in ' + \
-             tmpFxnFile + ' -c -t\| -S' + snpDbServer + ' -U' + snpDbUser
-    os.system(bcpCmd)
+
+    tmpFile = open(tmpFxnFile, 'r')
+    db.executeCopyFrom(tmpFile, tmpFxnTable, DL)
+    #db.commit()
 
     print 'Create indexes on the temp table'
     sys.stdout.flush()
-    db.sql('create index idx1 on tempdb..' + tmpFxnTable + ' ' + \
-           '(_ConsensusSnp_Marker_key)', 'auto')
-    db.sql('create index idx2 on tempdb..' + tmpFxnTable + ' ' + \
-           '(_Fxn_key)', 'auto')
-
+    db.sql('CREATE index idx1 on %s (_ConsensusSnp_Marker_key)' % (tmpFxnTable), None)
+    db.sql('CREATE index idx2 on %s (_Fxn_key)' % (tmpFxnTable), None)
 
 # Purpose: Update the function classes using the keys in the temp table.
 # Returns: Nothing
@@ -305,13 +291,19 @@ def applyUpdates():
 
     print 'Update the function classes'
     sys.stdout.flush()
-    db.sql('update SNP_ConsensusSnp_Marker ' + \
-           'set _Fxn_key = t._Fxn_key ' + \
-           'from SNP_ConsensusSnp_Marker sm, ' + \
-                'tempdb..' + tmpFxnTable + ' t ' + \
-           'where sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key',
-           'auto')
 
+    db.sql('''
+    	UPDATE SNP_ConsensusSnp_Marker sm 
+        SET _Fxn_key = t._Fxn_key 
+        FROM %s t
+        WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key
+	''' % (tmpFxnTable), 'auto')
+
+    results = db.sql('''
+    	SELECT t.* 
+	FROM SNP_ConsensusSnp_Marker sm, %s t
+	WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key
+	''' % (tmpFxnTable), 'auto')
 
 #
 #  MAIN

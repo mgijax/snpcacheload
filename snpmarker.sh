@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/sh -x
 
 #
 # Program: snpmarker.sh
@@ -16,13 +16,32 @@
 #             -c is an option to clean output directory
 #             -l is an option to clean logs directory
 #
+# Approximate times:
+#
+# only 4 SNP_Accession/indexs are dropped; 3 remain because they are used
+# in querying the data (see SNP_Accession_drop.object)
+#
+# 1) to build the SNP_Accession indexes (4): 1 hour (or less)
+# 2) to build the SNP_Accession cluster (1): 1 hour
+# question: do we need the SNP_Accession cluster???
+#
 # History
 #
+# lec	01/21/2013
+#	- TR10788/testing on linux server (TR11248 scrum project)
+#
+# sc	04/20/2012 
+#	- TR10788
+#	- updated for postgres, this includes removing
+#	   - rm bcp in/out of mgd..MRK_Location_Cache to snp..MRK_Location_Cache
+#	   - bcpin.csh instead of bcpin.csh
+#	   - rm all sybase specific stuff 
 # lec	09/01/2011 
 #	- TR10805
 #	- bcpout/in for MRK_Location_Cache uses default bcp settings
 #	  that is, do *not* use NL/DL
-#	- make sure the MRK_Location_Cache is synced up with mgd..MRK_Location_Cache
+#	- make sure the MRK_Location_Cache is synced up with 
+#	  mgd..MRK_Location_Cache
 #
 # sc    07/27/2006 - converted to bourne shell
 # lec   06/30/2006 - modified for mgiconfig
@@ -42,6 +61,9 @@ NL="\n"
 # bcp file column delimiter
 DL="|"
 
+# name of the snp schema
+SCHEMA='snp'
+export SCHEMA
 #
 #  Set up a log file for the shell script in case there is an error
 #  during configuration and initialization.
@@ -59,6 +81,7 @@ CLEAN_OUTPUT=no
 CLEAN_LOGS=no
 
 usage="Usage: snpmarker.sh [-a] [-r] [-c] [-l]"
+
 #
 # report usage if there are unrecognized arguments
 #
@@ -95,6 +118,9 @@ fi
 
 . ${CONFIG_LOAD}
 
+# set PGPASSWORD in the environment
+PGPASSWORD=`cat ${PGPASSFILE} | grep ${PG_DBUSER} | cut -d':' -f5`
+
 #
 #  Source the DLA library functions.
 #
@@ -117,7 +143,7 @@ fi
 #
 if [ ${ARC_OUTPUT} = "yes" ]
 then
-    date | tee -a ${SNPMARKER_LOG} ${LOG}
+    date | tee -a ${LOG}
     echo "archiving  output directory" | tee -a ${LOG}
     createArchive ${ARCHIVEDIR}/output ${CACHEDATADIR}
     STAT=$?
@@ -176,16 +202,18 @@ date > ${SNPMARKER_LOG}
 cd ${CACHEDATADIR}
 
 #
-# Allow bcp into database
-#
-echo "Allow bcp into database" | tee -a ${SNPMARKER_LOG}
-${MGI_DBUTILS}/bin/turnonbulkcopy.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} >> ${SNPMARKER_LOG} 2>&1
-
-#
 # Load dbSNP marker relationships
 #
 
-# create bcp file
+#
+# drop indexes that are no needed/used by the SNPCACHELOAD
+# this will make the ACC_TABLE deletion run much faster
+#
+date | tee -a ${SNPMARKER_LOG}
+echo "drop indexes on ${ACC_TABLE}"  | tee -a ${LOG}
+${SNPCACHELOAD}/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
+
+date | tee -a ${SNPMARKER_LOG}
 echo "Calling snpmarker.py" | tee -a ${SNPMARKER_LOG}
 ${SNPCACHELOAD}/snpmarker.py >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
@@ -195,57 +223,64 @@ then
     exit 1
 fi
 
-# SNP_MRK_TABLE truncate, drop indexes, bcp in, create indexes
+#
+# copy in SNP_MRK_TABLE, truncating and dropping/recreating indexes
+#
+
+# Note: we can't drop the index of the primary key because it is constraint 
+# on the primary key
 date | tee -a ${SNPMARKER_LOG}
-echo "bcp in  ${SNP_MRK_TABLE}" | tee -a ${SNPMARKER_LOG}
+echo "Truncate and drop indexes/keys on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
+${PG_SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_drop.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/key/SNP_Coord_Cache_drop.object >> ${SNPMARKER_LOG} 2>&1
+
+date | tee -a ${SNPMARKER_LOG}
+echo "copy in  ${SNP_MRK_TABLE}" | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${MGI_DBUTILS}/bin/bcpin_withTruncateDropIndex.csh ${SNPBE_DBSCHEMADIR} ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${SNP_MRK_FILE} ${DL} ${NL}
+${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${SNP_MRK_FILE} ${DL} ${SNP_MRK_TABLE} ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
+echo "snpmarker.sh exit code from bulkLoadPostres ${STAT}"
 if [ ${STAT} -ne 0 ]
 then
-    echo "${MGI_DBUTILS}/bin/bcpin_withTruncateDropIndex.csh failed" | tee -a ${SNPMARKER_LOG}
+    echo "bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
     exit 1
 fi
 
-# SNP_MRK_TABLE update statistics
-echo "" | tee -a ${SNPMARKER_LOG}
 date | tee -a ${SNPMARKER_LOG}
-echo "Update statistics on ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
-${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} >> ${SNPMARKER_LOG} 2>&1
+echo "Create index/key on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
+echo "" | tee -a ${SNPMARKER_LOG}
+${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
+
+# Note: we can't drop the index of the primary key because it is constraint 
+# on the primary key
+# Note: some indexes were removed by the cache load product itself,
+# so this script may produce some errors
+# but we want to flush out the deletion of any indexes
+date | tee -a ${SNPMARKER_LOG}
+echo "drop indexes on ${ACC_TABLE}"  | tee -a ${LOG}
+${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
 
 #
-# bcp in ACC_TABLE, dropping/recreating indexes
+# copy in ACC_TABLE, recreating indexes
 #
-
-# ACC_TABLE drop indexes
-echo "" | tee -a ${SNPMARKER_LOG}
 date | tee -a ${SNPMARKER_LOG}
-echo "Drop indexes on ${ACC_TABLE} table" | tee -a ${SNPMARKER_LOG}
-${SNPBE_DBSCHEMADIR}/index/${ACC_TABLE}_drop.object >> ${SNPMARKER_LOG} 2>&1
-
-# ACC_TABLE bcp in
-date | tee -a ${SNPMARKER_LOG}
-echo "bcp in  ${ACC_TABLE} " | tee -a ${SNPMARKER_LOG}
+echo "copy in  ${ACC_TABLE} " | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${MGI_DBUTILS}/bin/bcpin.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${ACC_TABLE} ${CACHEDATADIR} ${ACC_FILE} ${DL} ${NL} >> ${SNPMARKER_LOG} 2>&1
+${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${ACC_FILE} ${DL} ${ACC_TABLE} ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
-    echo "${MGI_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
+    echo "${PG_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
     exit 1
 fi
 
-# ACC_TABLE create indexes
-echo "" | tee -a ${SNPMARKER_LOG}
 date | tee -a ${SNPMARKER_LOG}
-echo "Create indexes on ${ACC_TABLE} table" >> ${SNPMARKER_LOG} 2>&1
-${SNPBE_DBSCHEMADIR}/index/${ACC_TABLE}_create.object >> ${SNPMARKER_LOG} 2>&1
-
-# ACC_TABLE update statistics
+echo "Create indexes on ${ACC_TABLE} table" 
 echo "" | tee -a ${SNPMARKER_LOG}
-date | tee -a ${SNPMARKER_LOG}
-echo "Update statistics on ${ACC_TABLE} table" | tee -a ${SNPMARKER_LOG}
-${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${ACC_TABLE} >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_create.object >> ${SNPMARKER_LOG} 2>&1
 
 #
 # Load MGI snp/marker distance relationships
@@ -253,48 +288,18 @@ ${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${ACC_
 # Only run the following steps if the dbSNP and MGI coordinates are
 # synchronized (same mouse genome build).
 #
+
+# 5/14 still get unexpected end of file even when this value is 'no'
 if [ ${IN_SYNC} = "yes" ] 
 then
-
-    # 
-    # load snp..MRK_Location_Cache
-    #
-
-    # bcp out MRKLOC_CACHETABLE	 
-    echo "" | tee -a ${SNPMARKER_LOG}
-    date | tee -a ${SNPMARKER_LOG}
-    echo "bcp out ${MRKLOC_CACHETABLE}" | tee -a ${SNPMARKER_LOG}
-    ${MGI_DBUTILS}/bin/bcpout.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${MRKLOC_CACHETABLE} ${CACHEDATADIR} ${MRKLOC_CACHEFILE} >> ${SNPMARKER_LOG} 2>&1
-    STAT=$?
-    if [ ${STAT} -ne 0 ]
-    then
-	echo "${MGI_DBUTILS}/bin/bcpout.csh failed" | tee -a ${SNPMARKER_LOG}
-	exit 1
-    fi
-
-    # bcp in MRKLOC_CACHETABLE, truncating and dropping/recreating indexes
-    echo "" | tee -a ${SNPMARKER_LOG}
-    date | tee -a ${SNPMARKER_LOG}
-    echo "bcp in MRK_Location_Cache" | tee -a ${SNPMARKER_LOG}
-    ${MGI_DBUTILS}/bin/bcpin_withTruncateDropIndex.csh ${SNPBE_DBSCHEMADIR} ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${MRKLOC_CACHETABLE} ${CACHEDATADIR} ${MRKLOC_CACHEFILE} >> ${SNPMARKER_LOG} 2>&1
-    STAT=$?
-    if [ ${STAT} -ne 0 ]
-    then
-        echo "${MGI_DBUTILS}/bin/bcpin_withTruncatDropIndex.csh failed" | tee -a ${SNPMARKER_LOG}
-        exit 1
-    fi
-
-    # update statistics
-    echo "updating statistics on ${MRKLOC_CACHETABLE}" | tee -a  ${SNPMARKER_LOG}
-    ${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${MRKLOC_CACHETABLE} >> ${SNPMARKER_LOG} 2>&1
 
     #
     # Update dbSNP locus-region function class to upstream/downstream
     #
 
-    echo "" | tee -a ${SNPMARKER_LOG} 
     date | tee -a ${SNPMARKER_LOG}
     echo "Calling snpmrklocus.py" | tee -a ${SNPMARKER_LOG}
+    echo "" | tee -a ${SNPMARKER_LOG}
     ${SNPCACHELOAD}/snpmrklocus.py >> ${SNPMARKER_LOG} 2>&1
     STAT=$?
     if [ ${STAT} -ne 0 ]
@@ -307,10 +312,9 @@ then
     # load MGI snp to marker relationships
     # 
 
-    # create the bcp file(s)
-    echo "" | tee -a ${SNPMARKER_LOG}
     date | tee -a ${SNPMARKER_LOG}
     echo "Calling snpmrkwithin.py" | tee -a ${SNPMARKER_LOG}
+    echo "" | tee -a ${SNPMARKER_LOG}
     ${SNPCACHELOAD}/snpmrkwithin.py >> ${SNPMARKER_LOG} 2>&1
     STAT=$?
     if [ ${STAT} -ne 0 ]
@@ -319,11 +323,11 @@ then
         exit 1
     fi
 
-    # SNP_MRK_TABLE drop indexes
-    echo "" | tee -a ${SNPMARKER_LOG}
     date | tee -a ${SNPMARKER_LOG}
-    echo "Drop indexes on ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
-    ${SNPBE_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_drop.object >> ${SNPMARKER_LOG} 2>&1
+    echo "dropping indexes on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
+    echo "" | tee -a ${SNPMARKER_LOG}
+    ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object
+
     echo "" | tee -a ${LOG}
 
     # SNP_MRK_TABLE bcp in each file
@@ -333,28 +337,31 @@ then
 	date | tee -a ${SNPMARKER_LOG}
 	echo "Load ${i} into ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
 	echo "" | tee -a ${SNPMARKER_LOG}
-	${MGI_DBUTILS}/bin/bcpin.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} ${DL} ${NL} >> ${SNPMARKER_LOG} 2>&1
+	${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${i} ${DL} ${SNP_MRK_TABLE} ${SCHEMA}
 	STAT=$?
 	if [ ${STAT} -ne 0 ]
 	then
-	    echo "${MGI_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
+	    echo "${PG_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
 	    exit 1
 	fi
     done
 
-    # SNP_MRK_TABLE create indexes
-    echo "" | tee -a ${LOG}
-    date | tee -a ${LOG}
-    echo "Create indexes on ${SNP_MRK_TABLE} table" | tee -a ${LOG}
-    ${SNPBE_DBSCHEMADIR}/index/${SNP_MRK_TABLE}_create.object >> ${SNPMARKER_LOG} 2>&1
-
-    # SNP_MRK_TABLE update statistics
-    echo "" | tee -a ${SNPMARKER_LOG}
+    # SNP_MRK_TABLE CREATE indexes
     date | tee -a ${SNPMARKER_LOG}
-    echo "Update statistics on ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG} 
-    ${MGI_DBUTILS}/bin/updateStatistics.csh ${SNPBE_DBSERVER} ${SNPBE_DBNAME} ${SNP_MRK_TABLE} >> ${SNPMARKER_LOG} 2>&1
-
+    echo "Create index on ${SNP_MRK_TABLE}"  | tee -a ${SNPMARKER_LOG}
+    echo "" | tee -a ${SNPMARKER_LOG}
+    ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object
 fi
 
+#
+# re-create keys at the end
+#
+date | tee -a ${SNPMARKER_LOG}
+echo "Create key on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-date | tee -a ${SNPMARKER_LOG} ${LOG}
+${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_create.object >> ${SNPMARKER_LOG} 2>&1
+${PG_SNP_DBSCHEMADIR}/key/SNP_Coord_Cache_create.object >> ${SNPMARKER_LOG} 2>&1
+
+date | tee -a ${SNPMARKER_LOG}
+
