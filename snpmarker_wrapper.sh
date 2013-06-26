@@ -43,7 +43,7 @@
 #
 ###########################################################################
 
-cd `dirname $0`; . ../Configuration
+cd `dirname $0`; . ./Configuration
 
 SCRIPT_NAME=`basename $0`
 
