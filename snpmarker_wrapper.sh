@@ -47,7 +47,7 @@ cd `dirname $0`; . ./Configuration
 
 SCRIPT_NAME=`basename $0`
 
-LOG=${LOG_DIR}/${SCRIPT_NAME}.log
+LOG=${CACHELOGSDIR}/${SCRIPT_NAME}.log
 rm -f ${LOG}
 touch ${LOG}
 
