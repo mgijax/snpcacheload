@@ -1,3 +1,9 @@
+TAG: snpcacheload-5-1-4-3
+DATE: 6/26/2013
+STAFF: dbm
+CHANGES:
+1) snpmarker_wrapper.sh: bug fix sourcing config file
+
 TAG: snpcacheload-5-1-4-2
 TAG: snpcacheload-5-1-4-1
 DATE: 05/09/2013, 06/13/2013
