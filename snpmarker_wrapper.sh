@@ -58,8 +58,8 @@ env | sort >> ${LOG}
 # Wait for the "Export Done" flag to be set. Stop waiting if the number
 # of retries expires or the abort flag is found.
 #
-date >> ${LOG}
-echo 'Wait for the "Export Done" flag to be set' >> ${LOG}
+date | tee -a ${LOG}
+echo 'Wait for the "Export Done" flag to be set' | tee -a ${LOG}
 
 RETRY=${PROC_CTRL_RETRIES}
 while [ ${RETRY} -gt 0 ]
@@ -83,26 +83,26 @@ done
 #
 if [ ${RETRY} -eq 0 ]
 then
-    echo "${SCRIPT_NAME} timed out" >> ${LOG}
-    date >> ${LOG}
+    echo "${SCRIPT_NAME} timed out" | tee -a ${LOG}
+    date | tee -a ${LOG}
     exit 1
 elif [ ${ABORT} -eq 1 ]
 then
-    echo "${SCRIPT_NAME} aborted by process controller" >> ${LOG}
-    date >> ${LOG}
+    echo "${SCRIPT_NAME} aborted by process controller" | tee -a ${LOG}
+    date | tee -a ${LOG}
     exit 1
 fi
 
 #
 # Run the snp/marker cache load.
 #
-date >> ${LOG}
-echo 'Run the snp/marker cache load' >> ${LOG}
+date | tee -a ${LOG}
+echo 'Run the snp/marker cache load' | tee -a ${LOG}
 ${SNPCACHELOAD}/snpmarker.sh >> ${LOG} 2>&1
 if [ $? -ne 0 ]
 then
-    echo "${SCRIPT_NAME} failed" >> ${LOG}
-    date >> ${LOG}
+    echo "${SCRIPT_NAME} failed" | tee -a ${LOG}
+    date | tee -a ${LOG}
     exit 1
 fi
 
@@ -113,7 +113,7 @@ date | tee -a ${LOG}
 echo 'Set process control flag: SNP Loaded' | tee -a ${LOG}
 ${PROC_CTRL_CMD_PROD}/setFlag ${NS_DATA_PREP} ${FLAG_SNP_LOADED} ${SCRIPT_NAME}
 
-echo "${SCRIPT_NAME} completed successfully" >> ${LOG}
-date >> ${LOG}
+echo "${SCRIPT_NAME} completed successfully" | tee -a ${LOG}
+date | tee -a ${LOG}
 
 exit 0
