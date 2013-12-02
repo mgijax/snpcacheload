@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 
 #
 # Program: snpmarker.sh
