@@ -240,7 +240,7 @@ ${PG_SNP_DBSCHEMADIR}/key/SNP_Coord_Cache_drop.object >> ${SNPMARKER_LOG} 2>&1
 date | tee -a ${SNPMARKER_LOG}
 echo "copy in  ${SNP_MRK_TABLE}" | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${SNP_MRK_FILE} ${DL} ${SNP_MRK_TABLE} ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
+${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${CACHEDATADIR}/${SNP_MRK_FILE} ${DL} 'not used' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 echo "snpmarker.sh exit code from bulkLoadPostres ${STAT}"
 if [ ${STAT} -ne 0 ]
@@ -269,7 +269,7 @@ ${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
 date | tee -a ${SNPMARKER_LOG}
 echo "copy in  ${ACC_TABLE} " | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${ACC_FILE} ${DL} ${ACC_TABLE} ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
+${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${ACC_TABLE} ${CACHEDATADIR} ${CACHEDATADIR}/${ACC_FILE} ${DL} 'not used' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
@@ -337,7 +337,7 @@ then
 	date | tee -a ${SNPMARKER_LOG}
 	echo "Load ${i} into ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
 	echo "" | tee -a ${SNPMARKER_LOG}
-	${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${PG_DBUSER} ${PGPASSWORD} ${CACHEDATADIR}/${i} ${DL} ${SNP_MRK_TABLE} ${SCHEMA}
+	${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${CACHEDATADIR}/${i} ${DL} 'not used' ${SCHEMA}
 	STAT=$?
 	if [ ${STAT} -ne 0 ]
 	then
