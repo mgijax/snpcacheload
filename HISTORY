@@ -1,3 +1,9 @@
+TAG: snpcacheload-5-2-1-1
+DATE: 12/17/2013
+STAFF: kstone
+CHANGES:
+1) modified bcpin.csh calls to comply with other postgres conversion changes
+
 TAG: snpcacheload-5-1-5-1
 DATE: 12/02/2013
 STAFF: dbm
