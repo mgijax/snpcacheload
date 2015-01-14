@@ -1,5 +1,11 @@
+TAG: snpcacheload-5-2-1-2
+DATE: 01/14/2015
+STAFF: lec
+CHANGES:
+1) SNP_Accession_drop.object : add 'if exists'
+
 TAG: snpcacheload-5-2-1-1
-DATE: 12/17/2013
+DATE: 12/17/2014
 STAFF: kstone
 CHANGES:
 1) modified bcpin.csh calls to comply with other postgres conversion changes

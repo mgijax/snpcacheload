@@ -19,16 +19,16 @@ cd `dirname $0` && . ./Configuration
 
 cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0
 
-drop index snp.SNP_Accession_idx_clustered
+drop index if exists snp.SNP_Accession_idx_clustered
 ;
 
-drop index snp.SNP_Accession_idx_Object_MGIType_key
+drop index if exists snp.SNP_Accession_idx_Object_MGIType_key
 ;
 
-drop index snp.SNP_Accession_idx_numericPart
+drop index if exists snp.SNP_Accession_idx_numericPart
 ;
 
-drop index snp.SNP_Accession_idx_prefixPart
+drop index if exists snp.SNP_Accession_idx_prefixPart
 ;
 
 EOSQL
