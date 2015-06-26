@@ -62,8 +62,7 @@ import os
 import string
 import time
 import loadlib
-import pg_db
-db = pg_db
+import db
 
 #
 # exceptions
@@ -118,10 +117,9 @@ fxnLookup = {}
 chrList = []
 
 # database environment variables
-server = os.environ['PG_DBSERVER']
-database = os.environ['PG_DBNAME']
-passwdfile = os.environ['PG_DBPASSWORDFILE']
-user = os.environ['PG_DBUSER']
+server = os.environ['MGD_DBSERVER']
+database = os.environ['MGD_DBNAME']
+user = os.environ['MGD_DBUSER']
 
 # next available _SNP_ConsensusSnp_Marker_key
 primaryKey = None

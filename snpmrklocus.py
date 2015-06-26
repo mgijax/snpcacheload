@@ -66,8 +66,7 @@ import sys
 import os
 import string
 import loadlib
-import pg_db
-db = pg_db
+import db
 import StringIO
 #
 #  CONSTANTS
@@ -85,10 +84,9 @@ DOWNSTREAM_TERM = 'Locus-Region (downstream)'
 locusRegionKey = 0
 
 # database environment variables
-server = os.environ['PG_DBSERVER']
-database = os.environ['PG_DBNAME']
-passwdfile = os.environ['PG_DBPASSWORDFILE']
-user = os.environ['PG_DBUSER']
+server = os.environ['MGD_DBSERVER']
+database = os.environ['MGD_DBNAME']
+user = os.environ['MGD_DBUSER']
 
 # lookup to resolve function class string to key
 fxnLookup = {}

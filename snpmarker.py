@@ -34,8 +34,7 @@ import os
 # MGI python libraries
 import mgi_utils
 import accessionlib
-import pg_db
-db = pg_db
+import db
 
 # constants
 NL = '\n'
@@ -62,10 +61,9 @@ egLdbKey = os.environ['EG_LOGICALDB_KEY']
 mrkMgiTypeKey = os.environ['MRKR_MGITYPE_KEY']
 
 # database environment variables
-server = os.environ['PG_DBSERVER']
-database = os.environ['PG_DBNAME']
-passwdfile = os.environ['PG_DBPASSWORDFILE']
-user = os.environ['PG_DBUSER']
+server = os.environ['MGD_DBSERVER']
+database = os.environ['MGD_DBNAME']
+user = os.environ['MGD_DBUSER']
 
 # current max(_Accession_key)
 accKey = 0
