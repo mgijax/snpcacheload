@@ -66,8 +66,7 @@ import sys
 import os
 import string
 import loadlib
-import pg_db
-db = pg_db
+import db
 import StringIO
 #
 #  CONSTANTS

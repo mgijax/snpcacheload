@@ -34,8 +34,7 @@ import os
 # MGI python libraries
 import mgi_utils
 import accessionlib
-import pg_db
-db = pg_db
+import db
 
 # constants
 NL = '\n'
@@ -90,7 +89,7 @@ def initialize():
     # Effects: queries a database
 
     # turn of tracing statements
-    db.setTrace(True)
+    #db.setTrace(True)
 
     password = db.get_sqlPassword()
 

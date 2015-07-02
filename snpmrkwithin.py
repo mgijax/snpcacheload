@@ -62,8 +62,7 @@ import os
 import string
 import time
 import loadlib
-import pg_db
-db = pg_db
+import db
 
 #
 # exceptions
