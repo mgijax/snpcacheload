@@ -119,7 +119,7 @@ fi
 . ${CONFIG_LOAD}
 
 # set PGPASSWORD in the environment
-PGPASSWORD=`cat ${PGPASSFILE} | grep ${PG_DBUSER} | cut -d':' -f5`
+PGPASSWORD=`cat ${PGPASSFILE} | grep ${MGD_DBUSER} | cut -d':' -f5`
 
 #
 #  Source the DLA library functions.
@@ -231,16 +231,16 @@ fi
 # on the primary key
 date | tee -a ${SNPMARKER_LOG}
 echo "Truncate and drop indexes/keys on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
-${PG_SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object >> ${SNPMARKER_LOG} 2>&1
-${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
-${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
-${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_drop.object >> ${SNPMARKER_LOG} 2>&1
-${PG_SNP_DBSCHEMADIR}/key/SNP_Coord_Cache_drop.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_drop.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/key/SNP_Coord_Cache_drop.object >> ${SNPMARKER_LOG} 2>&1
 
 date | tee -a ${SNPMARKER_LOG}
 echo "copy in  ${SNP_MRK_TABLE}" | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${SNP_MRK_FILE} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
+${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${SNP_MRK_FILE} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 echo "snpmarker.sh exit code from bulkLoadPostres ${STAT}"
 if [ ${STAT} -ne 0 ]
@@ -252,7 +252,7 @@ fi
 date | tee -a ${SNPMARKER_LOG}
 echo "Create index/key on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
 
 # Note: we can't drop the index of the primary key because it is constraint 
 # on the primary key
@@ -261,7 +261,7 @@ ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER
 # but we want to flush out the deletion of any indexes
 date | tee -a ${SNPMARKER_LOG}
 echo "drop indexes on ${ACC_TABLE}"  | tee -a ${LOG}
-${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/index/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
 
 #
 # copy in ACC_TABLE, recreating indexes
@@ -269,7 +269,7 @@ ${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
 date | tee -a ${SNPMARKER_LOG}
 echo "copy in  ${ACC_TABLE} " | tee -a ${SNPMARKER_LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${ACC_TABLE} ${CACHEDATADIR} ${ACC_FILE} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
+${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${ACC_TABLE} ${CACHEDATADIR} ${ACC_FILE} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
@@ -280,7 +280,7 @@ fi
 date | tee -a ${SNPMARKER_LOG}
 echo "Create indexes on ${ACC_TABLE} table" 
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_SNP_DBSCHEMADIR}/index/SNP_Accession_create.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/index/SNP_Accession_create.object >> ${SNPMARKER_LOG} 2>&1
 
 #
 # Load MGI snp/marker distance relationships
@@ -326,7 +326,7 @@ then
     date | tee -a ${SNPMARKER_LOG}
     echo "dropping indexes on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
     echo "" | tee -a ${SNPMARKER_LOG}
-    ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object
+    ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object
 
     echo "" | tee -a ${LOG}
 
@@ -337,7 +337,7 @@ then
 	date | tee -a ${SNPMARKER_LOG}
 	echo "Load ${i} into ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
 	echo "" | tee -a ${SNPMARKER_LOG}
-	${PG_DBUTILS}/bin/bcpin.csh ${PG_DBSERVER} ${PG_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} ${DL} 'notused' ${SCHEMA}
+	${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} ${DL} 'notused' ${SCHEMA}
 	STAT=$?
 	if [ ${STAT} -ne 0 ]
 	then
@@ -350,7 +350,7 @@ then
     date | tee -a ${SNPMARKER_LOG}
     echo "Create index on ${SNP_MRK_TABLE}"  | tee -a ${SNPMARKER_LOG}
     echo "" | tee -a ${SNPMARKER_LOG}
-    ${PG_SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object
+    ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object
 fi
 
 #
@@ -359,9 +359,9 @@ fi
 date | tee -a ${SNPMARKER_LOG}
 echo "Create key on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
-${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
-${PG_SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_create.object >> ${SNPMARKER_LOG} 2>&1
-${PG_SNP_DBSCHEMADIR}/key/SNP_Coord_Cache_create.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_create.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/key/SNP_Coord_Cache_create.object >> ${SNPMARKER_LOG} 2>&1
 
 date | tee -a ${SNPMARKER_LOG}
 

@@ -34,8 +34,8 @@
 #      This script will perform following steps:
 #
 #      1) Source the configuration files to establish the environment.
-#      2) Wait for the flag to signal that the exporter is done exporting
-#         the mgd database from Sybase to Postgres.
+#      2) Wait for the flag to signal that the public data generation
+#         databases have been loaded.
 #      3) Run the snp/marker cache load.
 #      4) Set the flag to signal that the snp database is ready.
 #
@@ -55,16 +55,16 @@ echo "$0" >> ${LOG}
 env | sort >> ${LOG}
 
 #
-# Wait for the "Export Done" flag to be set. Stop waiting if the number
+# Wait for the "Gen DB Loaded" flag to be set. Stop waiting if the number
 # of retries expires or the abort flag is found.
 #
 date | tee -a ${LOG}
-echo 'Wait for the "Export Done" flag to be set' | tee -a ${LOG}
+echo 'Wait for the "Gen DB Loaded" flag to be set' | tee -a ${LOG}
 
 RETRY=${PROC_CTRL_RETRIES}
 while [ ${RETRY} -gt 0 ]
 do
-    READY=`${PROC_CTRL_CMD_PROD}/getFlag ${NS_DATA_PREP} ${FLAG_EXPORT_DONE}`
+    READY=`${PROC_CTRL_CMD_PROD}/getFlag ${NS_DATA_PREP} ${FLAG_GEN_DB_LOADED}`
     ABORT=`${PROC_CTRL_CMD_PROD}/getFlag ${NS_DATA_PREP} ${FLAG_ABORT}`
 
     if [ ${READY} -eq 1 -o ${ABORT} -eq 1 ]
