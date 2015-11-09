@@ -1,3 +1,30 @@
+TAG: snpcacheload-tr12142-1
+DATE: 11/09/2015
+STAFF: sc
+CHANGES: 
+1) snpmarker.py:
+* removed db.setReturnAsSybase(False) so that queries return in sybase db.sql
+   format
+* removed db.setTrace(True), password = db.get_sqlPassword(), db.set_sqlLogin(user, password, server, database)
+* created a second temp table to
+    * create a lookup of csKeys to process
+    * query in batches of csKeys
+* Added code to process in batches
+* factored out a new method writeBCP for batch processing
+* Added two new columns to bcp file, distance_from and distance_direction
+2) snpmarker.sh - commented out call to snpmrklocus.py - we are no longer
+    updating locus-region function class, not yet removing the script from cvs
+3) snpmrkwithin.py
+* added calculation of exact distance from marker to populate distance_from
+* populate distance direction (upstream, downstream, or not applicable)
+* removed assigning of 'within * KB' fxn class, only assign fxn classes;
+** 'within coordinates of'
+** 'within distance of'
+* updated to 10KB from 1000KB 
+i* removed db.setReturnAsSybase(False) so that queries return in sybase db.sql
+   format
+* removed db.setTrace(True), password = db.get_sqlPassword(), db.set_sqlLogin(user, password, server, database)
+
 TAG: snpcacheload-tr12142-BP
 DATE: 11/03/2015
 STAFF: sc

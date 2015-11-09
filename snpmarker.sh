@@ -290,6 +290,7 @@ ${SNP_DBSCHEMADIR}/index/SNP_Accession_create.object >> ${SNPMARKER_LOG} 2>&1
 #
 
 # 5/14 still get unexpected end of file even when this value is 'no'
+echo "IN_SYNC:  ${IN_SYNC}"
 if [ ${IN_SYNC} = "yes" ] 
 then
 
@@ -297,16 +298,16 @@ then
     # Update dbSNP locus-region function class to upstream/downstream
     #
 
-    date | tee -a ${SNPMARKER_LOG}
-    echo "Calling snpmrklocus.py" | tee -a ${SNPMARKER_LOG}
-    echo "" | tee -a ${SNPMARKER_LOG}
-    ${SNPCACHELOAD}/snpmrklocus.py >> ${SNPMARKER_LOG} 2>&1
-    STAT=$?
-    if [ ${STAT} -ne 0 ]
-    then
-        echo "${SNPCACHELOAD}/snpmrklocus.py failed" | tee -a ${SNPMARKER_LOG}
-        exit 1
-    fi
+    #date | tee -a ${SNPMARKER_LOG}
+    #echo "Calling snpmrklocus.py" | tee -a ${SNPMARKER_LOG}
+    #echo "" | tee -a ${SNPMARKER_LOG}
+    #${SNPCACHELOAD}/snpmrklocus.py >> ${SNPMARKER_LOG} 2>&1
+    #STAT=$?
+    #if [ ${STAT} -ne 0 ]
+    #then
+    #    echo "${SNPCACHELOAD}/snpmrklocus.py failed" | tee -a ${SNPMARKER_LOG}
+    #    exit 1
+    #fi
 
     #
     # load MGI snp to marker relationships
@@ -337,7 +338,8 @@ then
 	date | tee -a ${SNPMARKER_LOG}
 	echo "Load ${i} into ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
 	echo "" | tee -a ${SNPMARKER_LOG}
-	${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} ${DL} 'notused' ${SCHEMA}
+	${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
+
 	STAT=$?
 	if [ ${STAT} -ne 0 ]
 	then
