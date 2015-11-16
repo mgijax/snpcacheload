@@ -43,11 +43,16 @@ DL = '|'
 # database errors
 DB_ERROR = 'A database error occured: '
 DB_CONNECT_ERROR = 'Connection to the database failed: '
+
 # max number of cs keys - remember some dp_snp_marker CS have upwards of 35
 # refseqs for which the record is complete dup except for the refseq
+# so, 75000 cs keys on 11/14 returned
+# min records: 137537
+# max records: 573385
 CS_MAX = 75000
 distance_from = 0
 distance_direction = 'not applicable'
+
 #
 # get values from environment
 #
@@ -82,6 +87,9 @@ accBCP = open(accFile, 'w')
 # current SNP_ConsensusSnp_Marker primary key
 primaryKey = 0
 
+# current SNP_RefSeq_Accession primary key
+accKey = 0
+
 #
 # Functions
 #
@@ -89,7 +97,7 @@ primaryKey = 0
 def initialize():
     # Purpose: create mgd marker lookup
     #          setup connection to a database
-    #          get SNP_Accession max(_Accession_key)
+    #          get SNP_RefSeq_Accession max(_Accession_key)
     # Returns: nothing
     # Assumes: nothing
     # Effects: queries a database
@@ -123,81 +131,8 @@ def initialize():
     print 'connected to %s..%s ...%s' % (server, database, NL)
     sys.stdout.flush()
 
-def deleteAccessions():
-    # Purpose: delete accession records 
-    # Returns: nothing
-    # Assumes: nothing
-    # Effects: queries a database, deletes records from a database
-    # Throws:  db.error, db.connection_exc
-
-    #
-    # note that the wrapper deletes non-essential SNP_Accession indexes
-    #
-
-    print 'deleting accessions...%s' % NL
-    sys.stdout.flush()
-
-    # get the number of total accessions to delete
-    results = db.sql('''SELECT COUNT(*) AS cacheCount 
-	FROM SNP_Accession a
-	WHERE a._MGIType_key = %s 
-	AND a._LogicalDB_key = %s''' % (snpMkrMgiTypeKey, refSeqLdbKey), 'auto')
-    numToDelete = int(results[0]['cacheCount'])
-    print 'count of SNP_Accession records: %s\n' % (str(numToDelete))
-    sys.stdout.flush()
-
-    # commands to accomplish the delete:
-    cmds = []
-    cmds.append('''CREATE TEMPORARY TABLE todelete
-	AS SELECT _Accession_key
-	FROM SNP_Accession
-	WHERE _MGIType_key = %s
-	AND _LogicalDB_key = %s
-	LIMIT 10000''' % (snpMkrMgiTypeKey, refSeqLdbKey))
-    cmds.append('CREATE INDEX idx1 on todelete(_Accession_key)')
-    cmds.append('''DELETE FROM SNP_Accession a
-	USING todelete d
-	WHERE d._Accession_key = a._Accession_key''')
-
-    # do the deletes in multiples of 1mill (limit 1000000)
-    while numToDelete > 0:
-        print 'deleting accessions...%s%s' % (numToDelete, NL)
-        sys.stdout.flush()
-	db.sql(cmds, None)
-	db.commit()
-	results = db.sql('SELECT count(*) AS delCount FROM todelete', 'auto')
-	sys.stdout.flush()
-	numToDelete = numToDelete - 10000
-	db.sql('DROP TABLE todelete', None)
-	db.commit()
-
-    # for testing...
-    # after deletion, there should be 0 records left
-    # get the number of total accessions to delete
-    results = db.sql('''SELECT COUNT(*) AS cacheCount 
-	FROM SNP_Accession a
-	WHERE a._MGIType_key = %s 
-	AND a._LogicalDB_key = %s''' % (snpMkrMgiTypeKey, refSeqLdbKey), 'auto')
-    numToDelete = int(results[0]['cacheCount'])
-    print 'count of SNP_Accession records AFTER deletion: %s\n' % (str(numToDelete))
-    sys.stdout.flush()
-
-def getMaxAccessionKey():
-    # Purpose: get max(_Accession_key) from a snp database
-    # Returns: nothing
-    # Assumes: nothing
-    # Effects: queries a database
-    # Throws:  db.error, db.connection_exc
-
-    # current max(_Accession_key)
-    global accKey
-
-    sys.stdout.flush()
-    results = db.sql('''SELECT max(_Accession_key) as maxKey FROM SNP_Accession''', 'auto')
-    accKey = results[0]['maxKey']
-
 def createBCP():
-    # Purpose: creates SNP_ConsensusSnp_Marker and SNP_Accession bcp files
+    # Purpose: creates SNP_ConsensusSnp_Marker and SNP_RefSeq_Accession bcp files
     # Returns: nothing
     # Assumes: nothing
     # Effects: queries a database, creates files in the filesystem
@@ -209,7 +144,7 @@ def createBCP():
     sys.stdout.flush()
 
     # get set of DP_SNP_Marker attributes into a temp table
-    # sc - we do this in two queries because DP_SNP_Marker has no index on
+    # sc - Looks like this is done with temp tables because DP_SNP_Marker has no index on
     # chromosome or startCoord
     db.sql('''SELECT a.accID AS rsId,
                 a._Object_key AS _ConsensusSnp_key,
@@ -221,8 +156,9 @@ def createBCP():
         FROM DP_SNP_Marker m, SNP_Accession a
         WHERE m.accID  = SUBSTRING(a.accid, 3, 15)
         AND a._MGIType_key = %s
-        AND a._LogicalDB_key = %s ''' % (csMgiTypeKey, csLdbKey), None)
-	#and m.chromosome = '19' ''' % (csMgiTypeKey, csLdbKey), None)
+	AND a._LogicalDB_key = %s ''' % (csMgiTypeKey, csLdbKey), None)
+#	AND a._LogicalDB_key = %s
+#         and m.chromosome = '19' ''' % (csMgiTypeKey, csLdbKey), None)
 
     results = db.sql('''select count(*) as tmpCt from snpmkr''', 'auto')
     totalCt = results[0]['tmpCt']
@@ -234,7 +170,8 @@ def createBCP():
     db.sql('CREATE INDEX idx2 ON snpmkr(chromosome)', None)
     db.sql('CREATE INDEX idx3 ON snpmkr(startCoord)', None)
 
-    # get the _Coord_Cache_key
+    # get the _Coord_Cache_key; load another temp table, so we can get data
+    # in batches
     results = db.sql('''SELECT r.*, c._Coord_Cache_key
 	INTO TEMPORARY TABLE snpmkr1
         FROM snpmkr r, SNP_Coord_Cache c
@@ -244,7 +181,7 @@ def createBCP():
 
     print 'loading csList ...%s' % (mgi_utils.date())
     sys.stdout.flush()
-    # csList is an ordered list of distinct cs keys in snpmkr1. We use this 
+    # csList is an ordered list of distinct cs keys from snpmkr1. We use this 
     # list to batch queries
     csList = []
 
@@ -258,9 +195,11 @@ def createBCP():
     print 'writing bcp file ...%s' % NL
     sys.stdout.flush()
 
-    # 
+    # the command which will get a batch of records from the temp table
     cmd = '''select * from snpmkr1
                 where _ConsensusSnp_key between %s and %s'''
+
+    # The total number of distinct refSnps with marker data from DP_SNP_Marker
     totalCsCt = len(csList)
     sys.stdout.flush()
     
@@ -271,7 +210,7 @@ def createBCP():
     startIndex = 0
     endIndex = startIndex + CS_MAX
 
-    # test is < because list index starts at 0
+    # test is '<' because list index starts at 0
     while endIndex < totalCsCt:
 	print 'startIndex: %s endIndex: %s %s' % (startIndex, endIndex,  mgi_utils.date())
 	sys.stdout.flush()
@@ -313,7 +252,7 @@ def createBCP():
 	writeBCP(results)
 
 def createAccession(accid, objectKey):
-    # Purpose: creates ACC_Accession bcp file
+    # Purpose: creates SNP_RefSeq_Accession bcp file
     # Returns: nothing
     # Assumes: nothing
     # Effects: creates a file in the file system
@@ -333,12 +272,13 @@ def createAccession(accid, objectKey):
         str(snpMkrMgiTypeKey) + NL)
 
 def writeBCP(results):
-    # Purpose: creates SNP_ConsensusSnp_Marker and SNP_Accession bcp files
+    # Purpose: creates SNP_ConsensusSnp_Marker and SNP_RefSeq_Accession bcp files
     # Returns: nothing
     # Assumes: nothing
     # Effects: creates files in the filesystem
     # Throws:  nothing
     global primaryKey
+
     keyList = []
     for r in results:
 	#print r
@@ -435,8 +375,6 @@ print 'snpmarker.py start: %s' % mgi_utils.date()
 sys.stdout.flush()
 try:
     initialize()
-    getMaxAccessionKey()
-    deleteAccessions()
     createBCP()
     finalize()
 except db.connection_exc, message:

@@ -74,7 +74,7 @@ MRKR_QTLTYPE_KEY=6
 export EG_LOGICALDB_KEY MRKR_MGITYPE_KEY MRKR_QTLTYPE_KEY
 
 # snp table and bcp file names 
-ACC_TABLE=SNP_Accession
+ACC_TABLE=SNP_RefSeq_Accession
 ACC_FILE=${ACC_TABLE}.bcp
 
 export ACC_TABLE ACC_FILE

@@ -185,6 +185,7 @@ def initialize():
     for r in results[1]:
         chrList.append(r[0])
     #chrList.append('19')
+
     #
     #  Get the max primary key for the SNP_ConsensusSnp_Marker table
     #
@@ -621,27 +622,27 @@ def getKBTerm(snpLoc, markerStart, markerEnd, markerStrand):
     #
     elif markerStrand == '-' and snpLoc <= midPoint:
         direction = 'downstream'
-	distance = markerEnd - snpLoc
+	distance = markerStart - snpLoc
     #
     #  If the SNP coordinate is > the midpoint of the marker on a
     #  "-" strand, the SNP is considered to be upstream.
     #
     elif markerStrand == '-' and snpLoc > midPoint:
         direction = 'upstream'
-	distance = snpLoc - markerStart
+	distance = snpLoc - markerEnd
     #
     #  If the SNP coordinate is <= the midpoint of the marker
-    #  and strand is Null (MIT marker), the SNP is considered to be upstream.
+    #  and strand is Null, the SNP is considered to be proximal
     #
     elif markerStrand == None and snpLoc <= midPoint:
-        direction = 'upstream'
+        direction = 'proximal'
 	distance = markerStart - snpLoc
     #
     #  If the SNP coordinate is > the midpoint of the marker
-    #  and strand is Null (MIT marker, the SNP is considered to be downstream.
+    #  and strand is Null, the SNP is considered to be downstream.
     #
     elif markerStrand == None and snpLoc > midPoint:
-        direction = 'downstream'
+        direction = 'distal'
 	distance = snpLoc - markerEnd
     else:
         return []
