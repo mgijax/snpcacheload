@@ -1,3 +1,11 @@
+TAG: snpcacheload-tr12142-3
+DATE: 11/19/2015
+STAFF: sc
+CHANGES: US39
+1) snpmrklocus.py - update locus-region calculation store as distance_direction
+    rather than updating fxn class 
+2) remove SNP_Accession_drop.object
+
 TAG: snpcacheload-tr12142-2
 DATE: 11/15/2015
 STAFF: sc
