@@ -282,16 +282,16 @@ then
     # Update dbSNP locus-region function class to upstream/downstream
     #
 
-    #date | tee -a ${SNPMARKER_LOG}
-    #echo "Calling snpmrklocus.py" | tee -a ${SNPMARKER_LOG}
-    #echo "" | tee -a ${SNPMARKER_LOG}
-    #${SNPCACHELOAD}/snpmrklocus.py >> ${SNPMARKER_LOG} 2>&1
-    #STAT=$?
-    #if [ ${STAT} -ne 0 ]
-    #then
-    #    echo "${SNPCACHELOAD}/snpmrklocus.py failed" | tee -a ${SNPMARKER_LOG}
-    #    exit 1
-    #fi
+    date | tee -a ${SNPMARKER_LOG}
+    echo "Calling snpmrklocus.py" | tee -a ${SNPMARKER_LOG}
+    echo "" | tee -a ${SNPMARKER_LOG}
+    ${SNPCACHELOAD}/snpmrklocus.py >> ${SNPMARKER_LOG} 2>&1
+    STAT=$?
+    if [ ${STAT} -ne 0 ]
+    then
+        echo "${SNPCACHELOAD}/snpmrklocus.py failed" | tee -a ${SNPMARKER_LOG}
+        exit 1
+    fi
 
     #
     # load MGI snp to marker relationships
