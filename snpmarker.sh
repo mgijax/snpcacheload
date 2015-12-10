@@ -234,37 +234,11 @@ then
     exit 1
 fi
 
-#
-# copy in SNP_RefSeq_Accession, truncating and dropping/recreating indexes
-#
-echo "Truncate and drop indexes on SNP_RefSeq_Accession; drop constraints"  | tee -a ${LOG}
-
-${SNP_DBSCHEMADIR}/table/SNP_RefSeq_Accession_truncate.object >> ${SNPMARKER_LOG} 2>&1
-${SNP_DBSCHEMADIR}/index/SNP_RefSeq_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
-${SNP_DBSCHEMADIR}/key/SNP_RefSeq_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
-
-date | tee -a ${SNPMARKER_LOG}
-echo "copy in  ${ACC_TABLE} " | tee -a ${SNPMARKER_LOG}
-echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${ACC_TABLE} ${CACHEDATADIR} ${ACC_FILE} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
-STAT=$?
-if [ ${STAT} -ne 0 ]
-then
-    echo "${PG_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
-    exit 1
-fi
-
 # constraints will be added back at the end
 date | tee -a ${SNPMARKER_LOG}
 echo "Create index on SNP_ConsensusSnp_Marker"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
 ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
-
-date | tee -a ${SNPMARKER_LOG}
-echo "Create indexes and constraints on SNP_RefSeq_Accession" 
-echo "" | tee -a ${SNPMARKER_LOG}
-${SNP_DBSCHEMADIR}/index/SNP_RefSeq_Accession_create.object >> ${SNPMARKER_LOG} 2>&1
-${SNP_DBSCHEMADIR}/key/SNP_RefSeq_Accession_create.object >> ${SNPMARKER_LOG} 2>&1
 
 #
 # Load MGI snp/marker distance relationships

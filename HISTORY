@@ -1,3 +1,13 @@
+TAG: snpcacheload-tr12142-5
+DATE: 11/24/2015
+STAFF: sc
+CHANGES: US106
+1) load new SNP_ConsensusSnp_Marker._Transcript_Protein_key
+   from new table SNP_Transcript_Marker (script to load this table added to 
+        dbsnpload)
+2) Pull out all changes from another US which created and loaded 
+    new table SNP_RefSeq_Accession table
+
 TAG: snpcacheload-tr12142-4
 DATE: 11/19/2015
 STAFF: sc

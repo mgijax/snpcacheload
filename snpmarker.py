@@ -3,9 +3,6 @@
 '''
 # Program: snpmarker.py
 # Purpose: Create bcp file for SNP_ConsensusSnp_Marker 
-#          delete SNP_ConsensusSnp_Marker accession records
-#          Create bcp file for ACC_Accession 
-#	     (associate RefSeq id's with SNP_ConsensusSnp_Marker objects)
 #
 # Usage:
 #	snpmarker.py
@@ -15,6 +12,8 @@
 # Outputs: 1) log file
 #    	   2) bcp files
 # History
+#
+# sc    11/23/2015 - TR11937/dbSNP 142
 #
 # lec	01/22/2013 - TR10778/conversion to postgres
 #	
@@ -74,9 +73,6 @@ server = os.environ['MGD_DBSERVER']
 database = os.environ['MGD_DBNAME']
 user = os.environ['MGD_DBUSER']
 
-# current max(_Accession_key)
-accKey = 0
-
 # marker lookup by entrezgene id
 markerLookup = {}
 
@@ -87,8 +83,11 @@ accBCP = open(accFile, 'w')
 # current SNP_ConsensusSnp_Marker primary key
 primaryKey = 0
 
-# current SNP_RefSeq_Accession primary key
-accKey = 0
+# lookup for refseq pairs
+# (transcriptId|proteinId: _Transcript_Protein_key, ...}
+# where key is transcriptId + | + proteinId
+# or just transcriptId  + | if proteinId is null
+refSeqPairDict =  {}
 
 #
 # Functions
@@ -96,8 +95,8 @@ accKey = 0
 
 def initialize():
     # Purpose: create mgd marker lookup
+    #	       create refseq transcript/protein pair lookup
     #          setup connection to a database
-    #          get SNP_RefSeq_Accession max(_Accession_key)
     # Returns: nothing
     # Assumes: nothing
     # Effects: queries a database
@@ -127,12 +126,23 @@ def initialize():
     print 'count of marker/EG records %s\n' % len(results)
     for r in results:
 	markerLookup[r['egId']] = r['_Marker_key'] 
-    
+
+    results = db.sql('''select * from  SNP_Transcript_Protein''', 'auto')
+
+    for r in results:
+	tableKey = r['_Transcript_Protein_key']
+	tId = r['transcriptId']
+	pId = r['proteinId']
+        if pId == None:
+	    pId = ''
+	key = '%s|%s' % (tId, pId)
+	refSeqPairDict[key] = tableKey
+
     print 'connected to %s..%s ...%s' % (server, database, NL)
     sys.stdout.flush()
 
 def createBCP():
-    # Purpose: creates SNP_ConsensusSnp_Marker and SNP_RefSeq_Accession bcp files
+    # Purpose: creates SNP_ConsensusSnp_Marker bcp file
     # Returns: nothing
     # Assumes: nothing
     # Effects: queries a database, creates files in the filesystem
@@ -251,35 +261,14 @@ def createBCP():
 
 	writeBCP(results)
 
-def createAccession(accid, objectKey):
-    # Purpose: creates SNP_RefSeq_Accession bcp file
-    # Returns: nothing
-    # Assumes: nothing
-    # Effects: creates a file in the file system
-    # Throws:  nothing
-
-    global accKey
-
-    accKey = accKey + 1
-    prefixpart, numericpart = accessionlib.split_accnum(accid)
-
-    accBCP.write(str(accKey) + DL + \
-        str(accid) + DL + \
-        str(prefixpart) + DL + \
-        str(numericpart) + DL + \
-        str(refSeqLdbKey) + DL + \
-        str(objectKey) + DL + \
-        str(snpMkrMgiTypeKey) + NL)
-
 def writeBCP(results):
-    # Purpose: creates SNP_ConsensusSnp_Marker and SNP_RefSeq_Accession bcp files
+    # Purpose: creates SNP_ConsensusSnp_Marker bcp file
     # Returns: nothing
     # Assumes: nothing
     # Effects: creates files in the filesystem
     # Throws:  nothing
     global primaryKey
 
-    keyList = []
     for r in results:
 	#print r
 	# sys.stdout.flush()
@@ -297,7 +286,7 @@ def writeBCP(results):
 	# get the marker key for 'egId' and write a line to the bcp file
 	# 
 	markerKey = markerLookup[ egId ]
-	#primaryKey = primaryKey + 1
+	primaryKey = primaryKey + 1
 
 	allele = r['contig_allele']
 	if allele == None:
@@ -314,41 +303,32 @@ def writeBCP(results):
 	r_frame = r['reading_frame']
 	if r_frame == None:
 	    r_frame = ""
-	key = str(r['_ConsensusSnp_key']) + DL + \
-            str(markerKey) + DL + \
-            str(r['_Fxn_key']) + DL + \
-            str(r['_Coord_Cache_key']) + DL + \
-            str(allele) + DL + \
-            str(residue) + DL + \
-            str(aa_pos) + DL + \
-            str(r_frame)
-	#print 'key: %s ' % key
-	if key not in keyList:
-   	    primaryKey = primaryKey + 1
-	    mrkrBCP.write(str(primaryKey) + DL + \
-		str(r['_ConsensusSnp_key']) + DL + \
-		str(markerKey) + DL + \
-		str(r['_Fxn_key']) + DL + \
-		str(r['_Coord_Cache_key']) + DL + \
-		str(allele) + DL + \
-		str(residue) + DL + \
-		str(aa_pos) + DL + \
-		str(r_frame) + DL + \
-		str(distance_from) + DL + \
-		str(distance_direction) + NL)
-	    keyList.append(key)
+
+        # if we have a refseq nucleotide seqid, find the _Transcript_Protein_key
 	nuclId = r['refseqNucleotide']
-	protId = r['refseqProtein']
+        protId = r['refseqProtein']
+	trKey = None
+        if nuclId != None:
+            if protId == None:
+                protId = ''
+            key = '%s|%s' % (nuclId, protId)
+            if refSeqPairDict.has_key(key):
+                trKey = refSeqPairDict[key]
+	    else:
+		print 'trKey not in refSeqPairDict: %s' % key
 
-	# if we have a refseq nucleotide seqid, associate it with
-	# the current SNP_ConsensusSnp_Marker object
-	if nuclId != None:
-	    createAccession(nuclId, primaryKey)
-
-	# if we have a refseq protein seqid, associate it with
-	# the current SNP_ConsensusSnp_Marker object
-	if protId != None:
-	    createAccession(protId, primaryKey)
+	mrkrBCP.write(str(primaryKey) + DL + \
+	    str(r['_ConsensusSnp_key']) + DL + \
+	    str(markerKey) + DL + \
+	    str(r['_Fxn_key']) + DL + \
+	    str(r['_Coord_Cache_key']) + DL + \
+	    str(allele) + DL + \
+	    str(residue) + DL + \
+	    str(aa_pos) + DL + \
+	    str(r_frame) + DL + \
+	    str(distance_from) + DL + \
+	    str(distance_direction) + DL + \
+	    str(trKey) + NL)
 
 def finalize():
     # Purpose: Perform cleanup steps for the script.

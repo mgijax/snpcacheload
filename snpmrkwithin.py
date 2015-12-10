@@ -45,6 +45,7 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  11/23/2015  sc   TR11937/dbSNP 142
 #  01/25/2013  lec  TR11248/10788 - conversion to postgres
 #  09/01/2011  lec  TR10805/add _Organism_key = 1
 #  06/30/2006  lec  modified for mgiconfig
@@ -334,21 +335,22 @@ def processSNPregion(chr, startCoord, endCoord):
 	#
 	# left of, right of - A is "left of" B if in
 	#		the chr region we are working on, A's coord is less
+
 	#		than B's (or if A and B are intervals, A's endCoord
 	#		is less than B's startCoord.
 	#		"right of" is defined similarly.
 	# Algorithm Outline:
-	# 1) Query Sybase for all the SNPs in the SNPregion, ordered by SNP
+	# 1) Query Postgres for all the SNPs in the SNPregion, ordered by SNP
 	#     location. Call this SNPlist.
-	# 2) Query Sybase for all markers in the MarkerRegion.
+	# 2) Query Postgres for all markers in the MarkerRegion.
 	#     Call this MarkerList.
-	# 3) Query Sybase for the ExcludeList - all SNP-Marker
+	# 3) Query Postgres for the ExcludeList - all SNP-Marker
 	#     pairs (in the region) that are already related by a dbSNP
 	#     association (we do not output SNP-Marker associations for these)
 	# 
 	# 4) Compute the "join" between markers and SNPs that are within
 	#    MARKER_PAD of each other. We do this here, rather than asking
-	#    Sybase to do it as we can do it more efficiently. Here is how:
+	#    Postgres to do it as we can do it more efficiently. Here is how:
 	# 
 	# For each marker in MarkerList # i.e., the typically smaller list
 	#     do binary search to find  # i.e., bin search the larger list
@@ -574,7 +576,7 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
 		   str(featureKey) + DL + \
 		   NULL + DL + NULL + DL + \
                    NULL + DL + NULL + DL + \
-                   str(distance) + DL + str(direction) + CRT)
+                   str(distance) + DL + str(direction) + DL + CRT)
 
     # increment key 
     primaryKey = primaryKey + 1

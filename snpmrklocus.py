@@ -9,10 +9,6 @@
 #      where SNP/marker pairs have been annotated to the "locus-region"
 #      SNP function class and determine whether the annotation should be
 #      upstream or downstream, depending on the SNP/marker coordinates.
-#      The primary key for each SNP_ConsensusSnp_Marker record and the key
-#      for the new SNP function class are written to a bcp file to load a
-#      temp table. The keys in this temp table are used to update the
-#      SNP_ConsensusSnp_Marker table with the new function class.
 #
 #  Usage:
 #
@@ -47,6 +43,7 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  11/23/2015  sc   TR11937/dbSNP 142
 #
 #  01/25/2013  lec  TR11248/TR10778 convert to postgres
 #
@@ -232,13 +229,13 @@ def createBCPFile():
         #  and strand is Null, the SNP is considered to be proximal
         #
 	elif markerStrand == None and snpLoc <= midPoint:
-	    direction = 'upstream'
+	    direction = 'proximal'
 	#
 	#  If the SNP coordinate is > the midpoint of the marker
 	#  and strand is Null, the SNP is considered to be downstream.
 	#
 	elif markerStrand == None and snpLoc > midPoint:
-	    direction = 'downstream'
+	    direction = 'distal'
 	else:
 	    print 'not covered by algorithm'
 	    print '    primaryKey: %s snpLoc: %s markerStart: %s markerEnd: %s markerStrand: %s' % ( primaryKey, snpLoc, markerStart, markerEnd, markerEnd) 
