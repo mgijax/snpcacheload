@@ -117,11 +117,15 @@ def initialize():
     #db.setReturnAsSybase(False)
 
     # query for all egId to marker associations
-    results = db.sql('''SELECT accID AS egId, _Object_key AS _Marker_key 
-	FROM ACC_Accession 
-        WHERE _LogicalDB_key = %s 
-        AND _MGIType_key = %s 
-        AND preferred = 1 ''' % (egLdbKey, mrkMgiTypeKey), 'auto' )
+    # exclude: withdrawn markers, marker type QTL and Cytogenetic, feature type heritable phenotypic
+    results = db.sql('''SELECT a.accID AS egId, a._Object_key AS _Marker_key 
+	FROM ACC_Accession a, MRK_Marker m
+        WHERE a._LogicalDB_key = %s 
+        AND a._MGIType_key = %s 
+        AND a.preferred = 1 
+	AND a._Object_key = m._Marker_key
+	AND m._Marker_Status_key in (1, 3)
+	''' % (egLdbKey, mrkMgiTypeKey), 'auto' )
 
     print 'count of marker/EG records %s\n' % len(results)
     for r in results:

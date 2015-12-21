@@ -93,9 +93,6 @@ MAX_NUMBER_SNPS = string.atoi(os.environ['MAX_QUERY_BATCH'])
 # max number of lines per bcp file to avoid file > 2Gb
 MAX_BCP_LINES = string.atoi(os.environ['MAX_BCP_LINES'])
 
-# QTL Markery Type Key
-MRKR_QTLTYPE_KEY = string.atoi(os.environ['MRKR_QTLTYPE_KEY'])
-
 #
 # GLOBALS
 #
@@ -427,19 +424,24 @@ def processSNPregion(chr, startCoord, endCoord):
 	sys.stdout.flush()
 
 	# query to fill Markers
-	# AND mc.chromosome = '%s' 
+	# exclude: withdrawn markers, marker type QTL and Cytogenetic, feature type heritable phenotypic
 	Markers = db.sql('''
 	        SELECT mc._Marker_key, 
 		       mc.startCoordinate as markerStart,
 		       mc.endCoordinate as markerEnd, 
 		       mc.strand as markerStrand 
-		FROM MRK_Location_Cache mc 
-		WHERE mc._Marker_Type_key != %s 
+		FROM MRK_Location_Cache mc, MRK_Marker m, MRK_MCV_Cache mcv
+		WHERE mc._Marker_Type_key not in (3, 6) 
 		AND mc._Organism_key = 1
 		AND mc.genomicchromosome = '%s' 
 		AND mc.endCoordinate >= %s 
 		AND mc.startCoordinate <= %s
-		''' % (MRKR_QTLTYPE_KEY, chr, startCoord-MARKER_PAD, endCoord+MARKER_PAD), 'auto')
+		AND mc._Marker_key = m._Marker_key
+		AND m._Marker_Status_key in (1, 3)
+		AND m._Marker_key = mcv._Marker_key
+		AND mcv.qualifier = 'D'
+		AND mcv._mcvTerm_key != 6238170
+		''' % (chr, startCoord-MARKER_PAD, endCoord+MARKER_PAD), 'auto')
 
 	print 'Marker Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
 	sys.stdout.flush()

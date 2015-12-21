@@ -1,3 +1,10 @@
+TAG: snpcacheload-tr12142-6
+DATE: 12/21/2015
+STAFF: sc
+CHANGES: 
+1) snpmarker.py - exclude withdrawn markers 
+2) snpmrkwithin.py - exclude withdrawn markers, cytogenetic markers and heritible phenotypic feature type.
+
 TAG: snpcacheload-tr12142-5
 DATE: 11/24/2015
 STAFF: sc

@@ -68,10 +68,7 @@ EG_LOGICALDB_KEY=55
 # mgd MRK_Marker _MGIType_key
 MRKR_MGITYPE_KEY=2
 
-# QTL MRK_Marker _Marker_Type_key
-MRKR_QTLTYPE_KEY=6
-
-export EG_LOGICALDB_KEY MRKR_MGITYPE_KEY MRKR_QTLTYPE_KEY
+export EG_LOGICALDB_KEY MRKR_MGITYPE_KEY
 
 # snp table and bcp file names 
 ACC_TABLE=SNP_RefSeq_Accession
