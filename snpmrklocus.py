@@ -9,10 +9,6 @@
 #      where SNP/marker pairs have been annotated to the "locus-region"
 #      SNP function class and determine whether the annotation should be
 #      upstream or downstream, depending on the SNP/marker coordinates.
-#      The primary key for each SNP_ConsensusSnp_Marker record and the key
-#      for the new SNP function class are written to a bcp file to load a
-#      temp table. The keys in this temp table are used to update the
-#      SNP_ConsensusSnp_Marker table with the new function class.
 #
 #  Usage:
 #
@@ -47,6 +43,7 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  11/23/2015  sc   TR11937/dbSNP 142
 #
 #  01/25/2013  lec  TR11248/TR10778 convert to postgres
 #
@@ -77,8 +74,8 @@ CRT = '\n'
 NULL = ''
 
 LOCUS_REGION_TERM = 'Locus-Region'
-UPSTREAM_TERM = 'Locus-Region (upstream)'
-DOWNSTREAM_TERM = 'Locus-Region (downstream)'
+UPSTREAM_TERM = 'upstream'
+DOWNSTREAM_TERM = 'downstream'
 
 # _Term_key for 'Locus-Region' function class
 locusRegionKey = 0
@@ -87,6 +84,8 @@ locusRegionKey = 0
 server = os.environ['MGD_DBSERVER']
 database = os.environ['MGD_DBNAME']
 user = os.environ['MGD_DBUSER']
+#print server
+#print database
 
 # lookup to resolve function class string to key
 fxnLookup = {}
@@ -116,28 +115,11 @@ def initialize():
     tmpFxnTable = os.environ['TMP_FXN_TABLE']
     tmpFxnFile = dataDir + '/' + os.environ['TMP_FXN_FILE']
 
-    password = db.get_sqlPassword()
     #
     #  Set up a connection to the mgd database.
     #
     db.useOneConnection(1)
-    db.set_sqlLogin(user, password, server, database)
     db.setReturnAsSybase(False)
-    db.setAutoTranslate(False)
-    #
-    #  Create a lookup for upstream/downstream function class terms.
-    #
-    results = db.sql('''
-    	SELECT t._Term_key, t.term
-        FROM VOC_Term t
-        WHERE t._Vocab_key = 49
-        AND t.term IN ('%s', '%s') 
-	''' % (UPSTREAM_TERM , DOWNSTREAM_TERM), 'auto' )
-
-    for r in results[1]:
-        fxnLookup[r[1]] = r[0]
-    print fxnLookup
-
     results = db.sql('''
     	SELECT t._Term_key
         FROM VOC_Term t
@@ -145,7 +127,6 @@ def initialize():
         AND t.term = '%s'
 	''' % (LOCUS_REGION_TERM), 'auto')
     locusRegionKey = results[1][0]
-    print locusRegionKey
 
     #
     #  Open the bcp file.
@@ -181,7 +162,6 @@ def finalize():
 # Throws: Nothing
 
 def createBCPFile():
-    global fxnLookup
     global fpTmpFxn
 
     print 'Get locus-region SNP/marker annotations'
@@ -189,7 +169,7 @@ def createBCPFile():
 
     results = db.sql('''
     	SELECT sm._ConsensusSnp_Marker_key, 
-        	sc.startCoordinate as snpStart, 
+        	sc.startCoordinate as snpLoc, 
         	mc.startCoordinate as markerStart, 
         	mc.endCoordinate as markerEnd, 
         	mc.strand as markerStrand 
@@ -203,7 +183,6 @@ def createBCPFile():
                 AND sm._Fxn_key = %s 
                 AND mc.startCoordinate IS NOT NULL 
                 AND mc.endCoordinate IS NOT NULL 
-                AND mc.strand IS NOT NULL
 		''' % (locusRegionKey), 'auto')
 
     print 'Create the bcp file'
@@ -211,34 +190,57 @@ def createBCPFile():
 
     for r in results[1]:
         primaryKey = r[0]
-        snpStart = r[1]
+        snpLoc = r[1]
         markerStart = r[2]
         markerEnd = r[3]
         markerStrand = r[4]
 
-	# if snp *within* the marker, do not update
-	# Note: marker start coordinates in MGI are always < end coordinates
-        if snpStart >= markerStart and snpStart <= markerEnd:
-	    continue
 
-	# if the marker straind in '+' determine fxn class accordingly
-	elif markerStrand == '+':
-	    # if snpStart < markerStart, the SNP is considered to be upstream
-	    if snpStart < markerStart:
-		fxnKey = fxnLookup[UPSTREAM_TERM]
-	    # if snpStart > markerStart, the SNP is considered to be downstream
-	    elif snpStart > markerStart:
-		fxnKey = fxnLookup[DOWNSTREAM_TERM]
+        #
+        #  Find the midpoint of the marker.
+        #
+        midPoint = (markerStart + markerEnd) / 2.0
+        #
+        #  If the SNP coordinate is <= the midpoint of the marker on a
+        #  "+" strand, the SNP is considered to be upstream.
+        #
+        if markerStrand == '+' and snpLoc <= midPoint:
+            direction = 'upstream'
+        #
+        #  If the SNP coordinate is > the midpoint of the marker on a
+        #  "+" strand, the SNP is considered to be downstream.
+        #
+        elif markerStrand == '+' and snpLoc > midPoint:
+            direction = 'downstream'
+        #
+        #  If the SNP coordinate is <= the midpoint of the marker on a
+        #  "-" strand, the SNP is considered to be downstream.
+        #
+        elif markerStrand == '-' and snpLoc <= midPoint:
+            direction = 'downstream'
+        #
+        #  If the SNP coordinate is > the midpoint of the marker on a
+        #  "-" strand, the SNP is considered to be upstream.
+        #
+        elif markerStrand == '-' and snpLoc > midPoint:
+            direction = 'upstream'
+        #
+        #  If the SNP coordinate is <= the midpoint of the marker
+        #  and strand is Null, the SNP is considered to be proximal
+        #
+	elif markerStrand == None and snpLoc <= midPoint:
+	    direction = 'proximal'
+	#
+	#  If the SNP coordinate is > the midpoint of the marker
+	#  and strand is Null, the SNP is considered to be downstream.
+	#
+	elif markerStrand == None and snpLoc > midPoint:
+	    direction = 'distal'
+	else:
+	    print 'not covered by algorithm'
+	    print '    primaryKey: %s snpLoc: %s markerStart: %s markerEnd: %s markerStrand: %s' % ( primaryKey, snpLoc, markerStart, markerEnd, markerEnd) 
 
-	# if marker strand is '-' determine fxn class accordingly
-	elif markerStrand == '-':
-	    # if snpStart < markerStart, the SNP is considered to be downstream
-            if snpStart < markerStart:
-                fxnKey = fxnLookup[DOWNSTREAM_TERM]
-	    # if snpStart > markerStart, the SNP is considered to be upstream
-	    elif snpStart > markerStart:
-                fxnKey = fxnLookup[UPSTREAM_TERM]
-	fpTmpFxn.write(str(primaryKey) + DL + str(fxnKey) + CRT)
+	fpTmpFxn.write(str(primaryKey) + DL + direction + CRT)
 
     #
     #  Close the bcp file.
@@ -262,7 +264,7 @@ def loadBCPFile():
     db.sql('''
     	CREATE TEMPORARY TABLE %s
         (_ConsensusSnp_Marker_key int not null,
-         _Fxn_key int not null
+         direction varchar not null
 	)
 	''' % (tmpFxnTable), None)
 
@@ -271,12 +273,12 @@ def loadBCPFile():
 
     tmpFile = open(tmpFxnFile, 'r')
     db.executeCopyFrom(tmpFile, tmpFxnTable, DL)
-    #db.commit()
+    db.commit()
 
     print 'Create indexes on the temp table'
     sys.stdout.flush()
     db.sql('CREATE index idx1 on %s (_ConsensusSnp_Marker_key)' % (tmpFxnTable), None)
-    db.sql('CREATE index idx2 on %s (_Fxn_key)' % (tmpFxnTable), None)
+    db.sql('CREATE index idx2 on %s (direction)' % (tmpFxnTable), None)
 
 # Purpose: Update the function classes using the keys in the temp table.
 # Returns: Nothing
@@ -287,12 +289,12 @@ def loadBCPFile():
 def applyUpdates():
     global tmpFxnTable
 
-    print 'Update the function classes'
+    print 'Update the distance direction'
     sys.stdout.flush()
 
     db.sql('''
     	UPDATE SNP_ConsensusSnp_Marker sm 
-        SET _Fxn_key = t._Fxn_key 
+        SET distance_direction = t.direction
         FROM %s t
         WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key
 	''' % (tmpFxnTable), 'auto')
@@ -302,7 +304,7 @@ def applyUpdates():
 	FROM SNP_ConsensusSnp_Marker sm, %s t
 	WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key
 	''' % (tmpFxnTable), 'auto')
-
+    db.commit()
 #
 #  MAIN
 #

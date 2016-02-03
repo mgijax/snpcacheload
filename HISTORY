@@ -1,3 +1,82 @@
+TAG: snpcacheload-6-0-3-1
+DATE: 02/03/2016
+STAFF: sc
+CHANGES: Merge tr12142 to trunk
+
+TAG: snpcacheload-tr12142-6
+DATE: 12/21/2015
+STAFF: sc
+CHANGES: 
+1) snpmarker.py - exclude withdrawn markers 
+2) snpmrkwithin.py - exclude withdrawn markers, cytogenetic markers and heritible phenotypic feature type.
+
+TAG: snpcacheload-tr12142-5
+DATE: 11/24/2015
+STAFF: sc
+CHANGES: US106
+1) load new SNP_ConsensusSnp_Marker._Transcript_Protein_key
+   from new table SNP_Transcript_Marker (script to load this table added to 
+        dbsnpload)
+2) Pull out all changes from another US which created and loaded 
+    new table SNP_RefSeq_Accession table
+
+TAG: snpcacheload-tr12142-4
+DATE: 11/19/2015
+STAFF: sc
+CHANGES: US39
+1) snpmarker.sh - uncomment call to snpmrklocus.py
+
+TAG: snpcacheload-tr12142-3
+DATE: 11/19/2015
+STAFF: sc
+CHANGES: US39
+1) snpmrklocus.py - update locus-region calculation store as distance_direction
+    rather than updating fxn class 
+2) remove SNP_Accession_drop.object
+
+TAG: snpcacheload-tr12142-2
+DATE: 11/15/2015
+STAFF: sc
+CHANGES: Using new SNP_RefSeq_Accession
+1) Configuration.default - update: ACC_TABLE=SNP_RefSeq_Accession
+2) snpmarker.sh 
+* Change references to SNP_Accession to SNP_RefSeq_Accession
+* Add dropping of keys as well as indexes
+* Stop using internal SNP_Accession_drop.object as we are now using and truncating
+    SNP_RefSeq_Accession
+3) snpmarker.py
+* remove deleteAccessions  and getMaxAccessionKey methods
+* update all Accession comments as appropriate
+* bug fix to calculation if distance for markers on the '-' strand
+* addition of 'proximal' or 'distal' rather than 'not applicable' for markers with null strand
+
+TAG: snpcacheload-tr12142-1
+DATE: 11/09/2015
+STAFF: sc
+CHANGES: 
+1) snpmarker.py:
+* removed db.setReturnAsSybase(False) so that queries return in sybase db.sql
+   format
+* removed db.setTrace(True), password = db.get_sqlPassword(), db.set_sqlLogin(user, password, server, database)
+* created a second temp table to
+    * create a lookup of csKeys to process
+    * query in batches of csKeys
+* Added code to process in batches
+* factored out a new method writeBCP for batch processing
+* Added two new columns to bcp file, distance_from and distance_direction
+2) snpmarker.sh - commented out call to snpmrklocus.py - we are no longer
+    updating locus-region function class, not yet removing the script from cvs
+3) snpmrkwithin.py
+* added calculation of exact distance from marker to populate distance_from
+* populate distance direction (upstream, downstream, or not applicable)
+* removed assigning of 'within * KB' fxn class, only assign fxn classes;
+** 'within coordinates of'
+** 'within distance of'
+* updated to 10KB from 1000KB 
+i* removed db.setReturnAsSybase(False) so that queries return in sybase db.sql
+   format
+* removed db.setTrace(True), password = db.get_sqlPassword(), db.set_sqlLogin(user, password, server, database)
+
 TAG: snpcacheload-tr12142-BP
 DATE: 11/03/2015
 STAFF: sc

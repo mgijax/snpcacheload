@@ -18,13 +18,6 @@
 #
 # Approximate times:
 #
-# only 4 SNP_Accession/indexs are dropped; 3 remain because they are used
-# in querying the data (see SNP_Accession_drop.object)
-#
-# 1) to build the SNP_Accession indexes (4): 1 hour (or less)
-# 2) to build the SNP_Accession cluster (1): 1 hour
-# question: do we need the SNP_Accession cluster???
-#
 # History
 #
 # lec	01/21/2013
@@ -205,14 +198,6 @@ cd ${CACHEDATADIR}
 # Load dbSNP marker relationships
 #
 
-#
-# drop indexes that are no needed/used by the SNPCACHELOAD
-# this will make the ACC_TABLE deletion run much faster
-#
-date | tee -a ${SNPMARKER_LOG}
-echo "drop indexes on ${ACC_TABLE}"  | tee -a ${LOG}
-${SNPCACHELOAD}/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
-
 date | tee -a ${SNPMARKER_LOG}
 echo "Calling snpmarker.py" | tee -a ${SNPMARKER_LOG}
 ${SNPCACHELOAD}/snpmarker.py >> ${SNPMARKER_LOG} 2>&1
@@ -224,13 +209,13 @@ then
 fi
 
 #
-# copy in SNP_MRK_TABLE, truncating and dropping/recreating indexes
+# copy in SNP_ConsensusSnp_Marker, truncating and dropping/recreating indexes
 #
 
 # Note: we can't drop the index of the primary key because it is constraint 
 # on the primary key
 date | tee -a ${SNPMARKER_LOG}
-echo "Truncate and drop indexes/keys on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
+echo "Truncate and drop indexes on SNP_ConsensusSnp_Marker; drop constraints"  | tee -a ${LOG}
 ${SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object >> ${SNPMARKER_LOG} 2>&1
 ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
 ${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
@@ -249,38 +234,11 @@ then
     exit 1
 fi
 
+# constraints will be added back at the end
 date | tee -a ${SNPMARKER_LOG}
-echo "Create index/key on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
+echo "Create index on SNP_ConsensusSnp_Marker"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
 ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
-
-# Note: we can't drop the index of the primary key because it is constraint 
-# on the primary key
-# Note: some indexes were removed by the cache load product itself,
-# so this script may produce some errors
-# but we want to flush out the deletion of any indexes
-date | tee -a ${SNPMARKER_LOG}
-echo "drop indexes on ${ACC_TABLE}"  | tee -a ${LOG}
-${SNP_DBSCHEMADIR}/index/SNP_Accession_drop.object >> ${SNPMARKER_LOG} 2>&1
-
-#
-# copy in ACC_TABLE, recreating indexes
-#
-date | tee -a ${SNPMARKER_LOG}
-echo "copy in  ${ACC_TABLE} " | tee -a ${SNPMARKER_LOG}
-echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${ACC_TABLE} ${CACHEDATADIR} ${ACC_FILE} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
-STAT=$?
-if [ ${STAT} -ne 0 ]
-then
-    echo "${PG_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
-    exit 1
-fi
-
-date | tee -a ${SNPMARKER_LOG}
-echo "Create indexes on ${ACC_TABLE} table" 
-echo "" | tee -a ${SNPMARKER_LOG}
-${SNP_DBSCHEMADIR}/index/SNP_Accession_create.object >> ${SNPMARKER_LOG} 2>&1
 
 #
 # Load MGI snp/marker distance relationships
@@ -290,6 +248,7 @@ ${SNP_DBSCHEMADIR}/index/SNP_Accession_create.object >> ${SNPMARKER_LOG} 2>&1
 #
 
 # 5/14 still get unexpected end of file even when this value is 'no'
+echo "IN_SYNC:  ${IN_SYNC}"
 if [ ${IN_SYNC} = "yes" ] 
 then
 
@@ -324,7 +283,7 @@ then
     fi
 
     date | tee -a ${SNPMARKER_LOG}
-    echo "dropping indexes on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
+    echo "dropping indexes on SNP_ConsensusSnp_Marker"  | tee -a ${LOG}
     echo "" | tee -a ${SNPMARKER_LOG}
     ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object
 
@@ -337,7 +296,8 @@ then
 	date | tee -a ${SNPMARKER_LOG}
 	echo "Load ${i} into ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
 	echo "" | tee -a ${SNPMARKER_LOG}
-	${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} ${DL} 'notused' ${SCHEMA}
+	${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
+
 	STAT=$?
 	if [ ${STAT} -ne 0 ]
 	then
@@ -348,7 +308,7 @@ then
 
     # SNP_MRK_TABLE CREATE indexes
     date | tee -a ${SNPMARKER_LOG}
-    echo "Create index on ${SNP_MRK_TABLE}"  | tee -a ${SNPMARKER_LOG}
+    echo "Create index on SNP_ConsensusSnp_Marker"  | tee -a ${SNPMARKER_LOG}
     echo "" | tee -a ${SNPMARKER_LOG}
     ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object
 fi
@@ -357,7 +317,7 @@ fi
 # re-create keys at the end
 #
 date | tee -a ${SNPMARKER_LOG}
-echo "Create key on ${SNP_MRK_TABLE}"  | tee -a ${LOG}
+echo "Create constraints on SNP_ConsensusSnp_Marker"  | tee -a ${LOG}
 echo "" | tee -a ${SNPMARKER_LOG}
 ${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
 ${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_create.object >> ${SNPMARKER_LOG} 2>&1

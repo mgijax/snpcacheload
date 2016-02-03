@@ -6,7 +6,7 @@
 #  Purpose:
 #
 #      This script will identify all SNP/marker pairs where the SNP is
-#      located within 1000 kb of the marker and there is no existing
+#      located within 10 kb of the marker and there is no existing
 #      annotation in the SNP_ConsensusSnp_Marker table. A new upstream or
 #      downstream annotation is created, depending on the SNP/marker
 #      coordinates.
@@ -45,6 +45,7 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  11/23/2015  sc   TR11937/dbSNP 142
 #  01/25/2013  lec  TR11248/10788 - conversion to postgres
 #  09/01/2011  lec  TR10805/add _Organism_key = 1
 #  06/30/2006  lec  modified for mgiconfig
@@ -71,6 +72,7 @@ import db
 # error messages written to stdout
 SNP_NOT_WITHIN  = 'Warning: SNP %s not within %s +/- bp of marker %s ' + \
 		  '- this should never happen'
+
 #
 #  CONSTANTS
 #
@@ -80,19 +82,16 @@ CRT = '\n'
 NULL = ''
 
 WITHIN_COORD_TERM = 'within coordinates of'
-WITHIN_KB_TERM = 'within %s kb %s of'
+WITHIN_KB_TERM = 'within distance of'
 
-MARKER_PAD      = 1000000	# max number of BP away a SNP can be FROM a
-				#  marker to compute a SNP-marker association
+MARKER_PAD      = 10000	# max number of BP away a SNP can be FROM a
+			# marker to compute a SNP-marker association
 
 # max number of SNPs in chr region to process at at time
 MAX_NUMBER_SNPS = string.atoi(os.environ['MAX_QUERY_BATCH'])
 
 # max number of lines per bcp file to avoid file > 2Gb
 MAX_BCP_LINES = string.atoi(os.environ['MAX_BCP_LINES'])
-
-# QTL Markery Type Key
-MRKR_QTLTYPE_KEY = string.atoi(os.environ['MRKR_QTLTYPE_KEY'])
 
 #
 # GLOBALS
@@ -159,9 +158,9 @@ def initialize():
     #  Set up a connection to the mgd database.
     #
     db.useOneConnection(1)
-    db.set_sqlLogin(user, password, server, database)
+    #db.set_sqlLogin(user, password, server, database)
     db.setReturnAsSybase(False)
-    db.setAutoTranslate(False)
+    #db.setAutoTranslate(False)
 
     #
     #  Create a lookup for within* function class terms.
@@ -183,6 +182,7 @@ def initialize():
 
     for r in results[1]:
         chrList.append(r[0])
+    #chrList.append('19')
 
     #
     #  Get the max primary key for the SNP_ConsensusSnp_Marker table
@@ -199,7 +199,7 @@ def initialize():
     return
 
 # Purpose: Create a bcp file with annotations for SNP/marker pairs where
-#          the SNP is within 1000 kb of the marker and there is no existing
+#          the SNP is within 10 kb of the marker and there is no existing
 #          annotation for the SNP/marker.
 # Returns: Nothing
 # Assumes: Nothing
@@ -273,7 +273,7 @@ def openBCPFile():
 #	   chr - by using binary search to find sub-regions with a small
 #	   enough number of SNPs (< MAX_NUMBER_SNPS) to process at a time
 #	   "Process" means: Create a bcp file with annotations for SNP/marker
-#	   pairs where the SNP is within 1000 kb of the marker and there is
+#	   pairs where the SNP is within 10 kb of the marker and there is
 #	   no existing annotation for the SNP/marker.
 # Returns: Nothing
 # Assumes: startCoord and endCoord are integers
@@ -332,21 +332,22 @@ def processSNPregion(chr, startCoord, endCoord):
 	#
 	# left of, right of - A is "left of" B if in
 	#		the chr region we are working on, A's coord is less
+
 	#		than B's (or if A and B are intervals, A's endCoord
 	#		is less than B's startCoord.
 	#		"right of" is defined similarly.
 	# Algorithm Outline:
-	# 1) Query Sybase for all the SNPs in the SNPregion, ordered by SNP
+	# 1) Query Postgres for all the SNPs in the SNPregion, ordered by SNP
 	#     location. Call this SNPlist.
-	# 2) Query Sybase for all markers in the MarkerRegion.
+	# 2) Query Postgres for all markers in the MarkerRegion.
 	#     Call this MarkerList.
-	# 3) Query Sybase for the ExcludeList - all SNP-Marker
+	# 3) Query Postgres for the ExcludeList - all SNP-Marker
 	#     pairs (in the region) that are already related by a dbSNP
 	#     association (we do not output SNP-Marker associations for these)
 	# 
 	# 4) Compute the "join" between markers and SNPs that are within
 	#    MARKER_PAD of each other. We do this here, rather than asking
-	#    Sybase to do it as we can do it more efficiently. Here is how:
+	#    Postgres to do it as we can do it more efficiently. Here is how:
 	# 
 	# For each marker in MarkerList # i.e., the typically smaller list
 	#     do binary search to find  # i.e., bin search the larger list
@@ -423,19 +424,24 @@ def processSNPregion(chr, startCoord, endCoord):
 	sys.stdout.flush()
 
 	# query to fill Markers
-	# AND mc.chromosome = '%s' 
+	# exclude: withdrawn markers, marker type QTL and Cytogenetic, feature type heritable phenotypic
 	Markers = db.sql('''
 	        SELECT mc._Marker_key, 
 		       mc.startCoordinate as markerStart,
 		       mc.endCoordinate as markerEnd, 
 		       mc.strand as markerStrand 
-		FROM MRK_Location_Cache mc 
-		WHERE mc._Marker_Type_key != %s 
+		FROM MRK_Location_Cache mc, MRK_Marker m, MRK_MCV_Cache mcv
+		WHERE mc._Marker_Type_key not in (3, 6) 
 		AND mc._Organism_key = 1
 		AND mc.genomicchromosome = '%s' 
 		AND mc.endCoordinate >= %s 
 		AND mc.startCoordinate <= %s
-		''' % (MRKR_QTLTYPE_KEY, chr, startCoord-MARKER_PAD, endCoord+MARKER_PAD), 'auto')
+		AND mc._Marker_key = m._Marker_key
+		AND m._Marker_Status_key in (1, 3)
+		AND m._Marker_key = mcv._Marker_key
+		AND mcv.qualifier = 'D'
+		AND mcv._mcvTerm_key != 6238170
+		''' % (chr, startCoord-MARKER_PAD, endCoord+MARKER_PAD), 'auto')
 
 	print 'Marker Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
 	sys.stdout.flush()
@@ -514,8 +520,6 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     # next available _SNP_ConsensusSnp_Marker_key
     global primaryKey
 
-    #KB_DISTANCE = [ 2, 10, 100, 500, 1000 ]
-    
     markerStart  = marker[1]
     markerEnd    = marker[2]
     markerStrand = marker[3]
@@ -526,37 +530,34 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     featureKey = snp[1]
 
     fxnKey = -1
+    dirDist = []
     #
     #  The SNP is located within the coordinates of the marker.
     #
     if snpLoc >= markerStart and snpLoc <= markerEnd:
 	sys.stdout.flush()
 	fxnKey = fxnLookup[WITHIN_COORD_TERM]
-
+	dirDist = ['not applicable', 0]
     #
     #  The SNP must be located within one of the pre-defined "KB"
     #  distances from the marker. Check each distance (starting
     #  with the small range) to see which one it is.
     #
-    #else:
-    #	sys.stdout.flush()
-    #	for kbDist in KB_DISTANCE:
-    #
-    #	fxnKey = getKBTerm(snpLoc, markerStart, markerEnd,
-    #	       markerStrand, kbDist) 
-    #
-    #	    #
-    #           #  If the distance has been determined, don't check
-    #	        #  any others.
-    #       #
-    #    if fxnKey > 0:
-    #		break
-    # if fxnKey can't be determined print msg to stdout
-    # so it will be logged and return
-    if fxnKey == -1:
-        #print SNP_NOT_WITHIN % (snp, MARKER_PAD, marker)
-        #sys.sys.stdout.flush()
+    else:
+    	sys.stdout.flush()
+        dirDist = getKBTerm(snpLoc, markerStart, markerEnd, markerStrand)
+    
+    if dirDist == []:
+        print SNP_NOT_WITHIN % (snp, MARKER_PAD, marker)
+        sys.sys.stdout.flush()
         return
+    # otherwise direction and distance are set. If fxnKey not yet set ([0, 'not applicable']
+    # then set it
+    else:
+        if fxnKey == -1:
+            fxnKey = fxnLookup[WITHIN_KB_TERM]
+        direction = dirDist[0]
+        distance = int(dirDist[1])
 
     # check the number of bcp lines in the current file, creating
     # new file if >= the configured max
@@ -576,30 +577,30 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
 		   str(fxnKey) + DL + \
 		   str(featureKey) + DL + \
 		   NULL + DL + NULL + DL + \
-		   NULL + DL + NULL + CRT)
+                   NULL + DL + NULL + DL + \
+                   str(distance) + DL + str(direction) + DL + CRT)
 
     # increment key 
     primaryKey = primaryKey + 1
     return
 
 # Purpose: Use the SNP/marker coordinates and marker strand to determine
-#          if the SNP is within a given "kb" distance from the marker.
+#          if the SNP is within a MARKER_PAD distance from the marker.
 #          If it is, the appropriate term is returned for the annotation.
 # Returns: The term key or -1 (if the SNP is not within the distance)
 # Assumes: Nothing
 # Effects: Nothing
 # Throws: Nothing
 
-def getKBTerm(snpLoc, markerStart, markerEnd, markerStrand, kbDist):
+def getKBTerm(snpLoc, markerStart, markerEnd, markerStrand):
 
     #
-    #  If the SNP is not within the given KB distance from the marker,
+    #  If the SNP is not within MARKER_PAD distance from the marker,
     #  don't check any further.
     #
-    if snpLoc < (markerStart - (kbDist * 1000)) or \
-       snpLoc > (markerEnd + (kbDist * 1000)):
-        return -1
-
+    if snpLoc < (markerStart - MARKER_PAD) or \
+       snpLoc > (markerEnd + MARKER_PAD):
+        return []
     #
     #  Find the midpoint of the marker.
     #
@@ -611,45 +612,46 @@ def getKBTerm(snpLoc, markerStart, markerEnd, markerStrand, kbDist):
     #
     if markerStrand == '+' and snpLoc <= midPoint:
         direction = 'upstream'
-
+ 	distance = markerStart - snpLoc
     #
     #  If the SNP coordinate is > the midpoint of the marker on a
     #  "+" strand, the SNP is considered to be downstream.
     #
     elif markerStrand == '+' and snpLoc > midPoint:
         direction = 'downstream'
-
+	distance = snpLoc - markerEnd
     #
     #  If the SNP coordinate is <= the midpoint of the marker on a
     #  "-" strand, the SNP is considered to be downstream.
     #
     elif markerStrand == '-' and snpLoc <= midPoint:
         direction = 'downstream'
-
+	distance = markerStart - snpLoc
     #
     #  If the SNP coordinate is > the midpoint of the marker on a
     #  "-" strand, the SNP is considered to be upstream.
     #
     elif markerStrand == '-' and snpLoc > midPoint:
         direction = 'upstream'
+	distance = snpLoc - markerEnd
     #
     #  If the SNP coordinate is <= the midpoint of the marker
-    #  and strand is Null (MIT marker), the SNP is considered to be upstream.
+    #  and strand is Null, the SNP is considered to be proximal
     #
     elif markerStrand == None and snpLoc <= midPoint:
-        direction = 'upstream'
-
+        direction = 'proximal'
+	distance = markerStart - snpLoc
     #
     #  If the SNP coordinate is > the midpoint of the marker
-    #  and strand is Null (MIT marker, the SNP is considered to be downstream.
+    #  and strand is Null, the SNP is considered to be downstream.
     #
     elif markerStrand == None and snpLoc > midPoint:
-        direction = 'downstream'
-
+        direction = 'distal'
+	distance = snpLoc - markerEnd
     else:
-        return -1
-
-    return fxnLookup[WITHIN_KB_TERM % (str(kbDist),direction)]
+        return []
+    dirDistList = [direction, distance]
+    return dirDistList
 
 # Purpose: Do binary search through a list of dictionaries as typically
 #          returned from a call to db.sql()
