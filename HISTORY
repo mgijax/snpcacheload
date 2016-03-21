@@ -1,3 +1,10 @@
+TAG: snpcacheload-6-0-3-2
+DATE: 03/21/2016
+STAFF: dbm
+CHANGES:
+1) snpmarker_wrapper.sh - Removed because loadadmin/bin/genReleaseData.csh now
+                          calls snpmarker.sh directly
+
 TAG: snpcacheload-6-0-3-1
 DATE: 02/03/2016
 STAFF: sc
