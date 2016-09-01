@@ -437,7 +437,7 @@ def processSNPregion(chr, startCoord, endCoord):
 		AND mc.endCoordinate >= %s 
 		AND mc.startCoordinate <= %s
 		AND mc._Marker_key = m._Marker_key
-		AND m._Marker_Status_key in (1, 3)
+		AND m._Marker_Status_key = 1
 		AND m._Marker_key = mcv._Marker_key
 		AND mcv.qualifier = 'D'
 		AND mcv._mcvTerm_key != 6238170

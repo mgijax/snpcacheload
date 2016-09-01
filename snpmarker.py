@@ -124,7 +124,7 @@ def initialize():
         AND a._MGIType_key = %s 
         AND a.preferred = 1 
 	AND a._Object_key = m._Marker_key
-	AND m._Marker_Status_key in (1, 3)
+	AND m._Marker_Status_key = 1
 	''' % (egLdbKey, mrkMgiTypeKey), 'auto' )
 
     print 'count of marker/EG records %s\n' % len(results)
