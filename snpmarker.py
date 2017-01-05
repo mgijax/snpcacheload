@@ -111,10 +111,6 @@ def initialize():
 
     # set up connection to the mgd database
     db.useOneConnection(1)
-    #db.set_sqlLogin(user, password, server, database)
-
-    # Get postgres output, don't translate to old db.py output
-    #db.setReturnAsSybase(False)
 
     # query for all egId to marker associations
     # exclude: withdrawn markers, marker type QTL and Cytogenetic, feature type heritable phenotypic
