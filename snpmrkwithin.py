@@ -45,6 +45,8 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  03/07/2019  sc   TR12934/TR12991 - change to within 2KB, do not assign WITHIN_KB to 
+#		    Other Genome Feature. Only assign WITHIN_COORD of marker
 #  11/23/2015  sc   TR11937/dbSNP 142
 #  01/25/2013  lec  TR11248/10788 - conversion to postgres
 #  09/01/2011  lec  TR10805/add _Organism_key = 1
@@ -84,7 +86,7 @@ NULL = ''
 WITHIN_COORD_TERM = 'within coordinates of'
 WITHIN_KB_TERM = 'within distance of'
 
-MARKER_PAD      = 10000	# max number of BP away a SNP can be FROM a
+MARKER_PAD      = 2000	# max number of BP away a SNP can be FROM a
 			# marker to compute a SNP-marker association
 
 # max number of SNPs in chr region to process at at time
@@ -197,7 +199,7 @@ def initialize():
     return
 
 # Purpose: Create a bcp file with annotations for SNP/marker pairs where
-#          the SNP is within 10 kb of the marker and there is no existing
+#          the SNP is within 2 kb of the marker and there is no existing
 #          annotation for the SNP/marker.
 # Returns: Nothing
 # Assumes: Nothing
@@ -427,7 +429,8 @@ def processSNPregion(chr, startCoord, endCoord):
 	        SELECT mc._Marker_key, 
 		       mc.startCoordinate as markerStart,
 		       mc.endCoordinate as markerEnd, 
-		       mc.strand as markerStrand 
+		       mc.strand as markerStrand, 
+		       mc._Marker_Type_key
 		FROM MRK_Location_Cache mc, MRK_Marker m, MRK_MCV_Cache mcv
 		WHERE mc._Marker_Type_key not in (3, 6) 
 		AND mc._Organism_key = 1
@@ -518,10 +521,11 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     # next available _SNP_ConsensusSnp_Marker_key
     global primaryKey
 
+    markerKey    = marker[0]
     markerStart  = marker[1]
     markerEnd    = marker[2]
     markerStrand = marker[3]
-    markerKey    = marker[0]
+    markerTypeKey = marker[4]
 
     snpLoc = snp[2]
     snpKey = snp[0]
@@ -536,6 +540,11 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
 	sys.stdout.flush()
 	fxnKey = fxnLookup[WITHIN_COORD_TERM]
 	dirDist = ['not applicable', 0]
+
+    # Other Genome Feature - do not want to assign WITHIN_KB_TERM
+    elif markerTypeKey == 9:
+        return
+
     #
     #  The SNP must be located within one of the pre-defined "KB"
     #  distances from the marker. Check each distance (starting
@@ -544,11 +553,12 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     else:
     	sys.stdout.flush()
         dirDist = getKBTerm(snpLoc, markerStart, markerEnd, markerStrand)
-    
+
     if dirDist == []:
         print SNP_NOT_WITHIN % (snp, MARKER_PAD, marker)
         sys.sys.stdout.flush()
         return
+
     # otherwise direction and distance are set. If fxnKey not yet set ([0, 'not applicable']
     # then set it
     else:
