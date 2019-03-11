@@ -60,7 +60,6 @@ distance_direction = 'not applicable'
 snpMrkrTable = os.environ['SNP_MRK_TABLE']
 snpMrkrFile = os.environ['SNP_MRK_FILE']
 accTable = os.environ['ACC_TABLE']
-accFile = os.environ['ACC_FILE']
 refSeqLdbKey = os.environ['REFSEQ_LOGICALDB_KEY']
 snpMkrMgiTypeKey = os.environ['SNPMRKR_MGITYPE_KEY']
 csLdbKey = os.environ['CS_LOGICALDB_KEY']
@@ -78,7 +77,6 @@ markerLookup = {}
 
 # bcp file writers
 mrkrBCP = open(snpMrkrFile, 'w')
-accBCP = open(accFile, 'w')
 
 # current SNP_ConsensusSnp_Marker primary key
 primaryKey = 0
@@ -149,7 +147,6 @@ def createBCP():
     # Throws:  db.error, db.connection_exc
 
     print 'creating %s...%s' % (snpMrkrFile, mgi_utils.date())
-    print 'and  %s...%s%s' % (accFile, mgi_utils.date(), NL)
     print 'querying ... %s' % NL
     sys.stdout.flush()
 
@@ -344,7 +341,6 @@ def finalize():
     #
     db.useOneConnection(0)
     mrkrBCP.close()
-    accBCP.close()
     return
 
 #
