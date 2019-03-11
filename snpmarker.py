@@ -92,17 +92,15 @@ refSeqPairDict =  {}
 #
 
 def initialize():
-    # Purpose: create mgd marker lookup
-    #	       create refseq transcript/protein pair lookup
-    #          setup connection to a database
+    # Purpose:  setup connection to a database
+    # 		create mgd marker lookup
+    #           create refseq transcript/protein pair lookup
     # Returns: nothing
     # Assumes: nothing
     # Effects: queries a database
 
-    # turn of tracing statements
+    # turn on tracing statements
     #db.setTrace(True)
-
-    #password = db.get_sqlPassword()
 
     print 'connecting to database and loading markerLookup...%s' % NL
     sys.stdout.flush()
