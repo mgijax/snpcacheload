@@ -57,20 +57,23 @@ distance_direction = 'not applicable'
 #
 
 # table names and bcp file paths
-snpMrkrTable = os.environ['SNP_MRK_TABLE']
-snpMrkrFile = os.environ['SNP_MRK_FILE']
-accTable = os.environ['ACC_TABLE']
-refSeqLdbKey = os.environ['REFSEQ_LOGICALDB_KEY']
-snpMkrMgiTypeKey = os.environ['SNPMRKR_MGITYPE_KEY']
-csLdbKey = os.environ['CS_LOGICALDB_KEY']
-csMgiTypeKey = os.environ['CS_MGITYPE_KEY']
-egLdbKey = os.environ['EG_LOGICALDB_KEY']
-mrkMgiTypeKey = os.environ['MRKR_MGITYPE_KEY']
+snpMrkrTable = os.getenv('SNP_MRK_TABLE')
+snpMrkrFile = os.getenv('SNP_MRK_FILE')
+accTable = os.getenv('ACC_TABLE')
+refSeqLdbKey = os.getenv('REFSEQ_LOGICALDB_KEY')
+snpMkrMgiTypeKey = os.getenv('SNPMRKR_MGITYPE_KEY')
+csLdbKey = os.getenv('CS_LOGICALDB_KEY')
+csMgiTypeKey = os.getenv('CS_MGITYPE_KEY')
+egLdbKey = os.getenv('EG_LOGICALDB_KEY')
+mrkMgiTypeKey = os.getenv('MRKR_MGITYPE_KEY')
 
-# database environment variables
-server = os.environ['MGD_DBSERVER']
-database = os.environ['MGD_DBNAME']
-user = os.environ['MGD_DBUSER']
+# database getenvment variables
+server = os.getenv('MGD_DBSERVER')
+database = os.getenv('MGD_DBNAME')
+user = os.getenv('MGD_DBUSER')
+
+# The list of chromosomes to load
+chrList = []
 
 # marker lookup by entrezgene id
 markerLookup = {}
@@ -87,6 +90,7 @@ primaryKey = 0
 # or just transcriptId  + | if proteinId is null
 refSeqPairDict =  {}
 
+
 #
 # Functions
 #
@@ -101,12 +105,25 @@ def initialize():
 
     # turn on tracing statements
     #db.setTrace(True)
+    global chrList, markerLookup, refSeqPairDict
 
     print 'connecting to database and loading markerLookup...%s' % NL
     sys.stdout.flush()
 
     # set up connection to the mgd database
     db.useOneConnection(1)
+
+    #
+    #  Create of list of chromosomes.
+    #
+    results = db.sql('''SELECT DISTINCT chromosome FROM SNP_Coord_Cache
+		ORDER BY chromosome''', 'auto')
+
+    for r in results:
+        chrList.append(r['chromosome'])
+     
+    #chrList.append('19')
+    #chrList.append('1')
 
     # query for all egId to marker associations
     # exclude: withdrawn markers, marker type QTL and Cytogenetic, feature type heritable phenotypic
@@ -137,14 +154,16 @@ def initialize():
     print 'connected to %s..%s ...%s' % (server, database, NL)
     sys.stdout.flush()
 
-def createBCP():
-    # Purpose: creates SNP_ConsensusSnp_Marker bcp file
+    return
+
+def createBCP(chr):
+    # Purpose: creates SNP_ConsensusSnp_Marker bcp file for CS on chr
     # Returns: nothing
     # Assumes: nothing
     # Effects: queries a database, creates files in the filesystem
     # Throws:  db.error, db.connection_exc
 
-    print 'creating %s...%s' % (snpMrkrFile, mgi_utils.date())
+    print 'creating %s for chr%s...%s' % (snpMrkrFile, chr, mgi_utils.date())
     print 'querying ... %s' % NL
     sys.stdout.flush()
 
@@ -159,15 +178,16 @@ def createBCP():
                 m.aa_position, m.reading_frame
         INTO TEMPORARY TABLE snpmkr
         FROM DP_SNP_Marker m, SNP_Accession a
-        WHERE m.accID  = SUBSTRING(a.accid, 3, 15)
+        WHERE m.accID  = a.accid
+	AND m.chromosome = '%s'
         AND a._MGIType_key = %s
-	AND a._LogicalDB_key = %s ''' % (csMgiTypeKey, csLdbKey), None)
+	AND a._LogicalDB_key = %s ''' % (chr, csMgiTypeKey, csLdbKey), None)
 #	AND a._LogicalDB_key = %s
-#         and m.chromosome = '19' ''' % (csMgiTypeKey, csLdbKey), None)
+#         and m.chromosome = '19' ''' % (chr, csMgiTypeKey, csLdbKey), None)
 
     results = db.sql('''select count(*) as tmpCt from snpmkr''', 'auto')
     totalCt = results[0]['tmpCt']
-    print 'totalCt: %s' % totalCt
+    print 'totalCt for chr %s: %s' % (chr, totalCt)
     sys.stdout.flush()
 
     # create indexes
@@ -195,7 +215,7 @@ def createBCP():
 	#print r['csKey']
 	sys.stdout.flush()
 	csList.append(r['csKey'])
-    print 'total cs to process (len(csList)): %s %s' % (len(csList), mgi_utils.date())
+    print 'total cs to process (len(csList)) in chr%s: %s %s' % (chr, len(csList), mgi_utils.date())
     print 'Our csKey batch size is: %s' % CS_MAX 
     print 'writing bcp file ...%s' % NL
     sys.stdout.flush()
@@ -256,10 +276,16 @@ def createBCP():
 
 	writeBCP(results)
 
+	# drop the temporary tables
+	db.sql('''drop table snpmkr''', None)
+	db.sql('''drop table snpmkr1''', None)
+
+    return
+
 def writeBCP(results):
     # Purpose: creates SNP_ConsensusSnp_Marker bcp file
     # Returns: nothing
-    # Assumes: nothing
+    # Assumes: lookups initialized, file descriptors initialized
     # Effects: creates files in the filesystem
     # Throws:  nothing
     global primaryKey
@@ -325,6 +351,21 @@ def writeBCP(results):
 	    str(distance_direction) + DL + \
 	    str(trKey) + NL)
 
+    return
+
+def process():
+    # Purpose: Process one chromosome at a time to break up the size of the
+    # 	 	results set
+    # Returns: Nothing
+    # Assumes: See createBcp(chr)
+    # Effects: Writes to bcp file
+    # Throws: Nothing
+
+    for chr in chrList:
+	createBCP(chr)
+
+    return
+
 def finalize():
     # Purpose: Perform cleanup steps for the script.
     # Returns: Nothing
@@ -332,13 +373,12 @@ def finalize():
     # Effects: Nothing
     # Throws: Nothing
 
-    global fpSnpMrk
-    
     #
     #  Close the bcp files.
     #
     db.useOneConnection(0)
     mrkrBCP.close()
+
     return
 
 #
@@ -349,7 +389,7 @@ print 'snpmarker.py start: %s' % mgi_utils.date()
 sys.stdout.flush()
 try:
     initialize()
-    createBCP()
+    process()
     finalize()
 except db.connection_exc, message:
     error = '%s%s' % (DB_CONNECT_ERROR, message)
