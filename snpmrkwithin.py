@@ -59,7 +59,6 @@
 
 import sys
 import os
-import string
 import time
 import loadlib
 import db
@@ -108,7 +107,7 @@ snpMrkFile = None
 # file pointer for the bcp file
 fpSnpMrk = None
 
-# lookup to resolve function class str.to key
+# lookup to resolve function class string to key
 fxnLookup = {}
 
 # list of chromosomes to process
@@ -136,7 +135,7 @@ def initialize():
     #
     # The following globals will be initialized
     #
-    global fxnLookup   # create lookup to resolve function class str.to key
+    global fxnLookup   # create lookup to resolve function class string to key
     global chrList     # create list of chromosomes to process
     global primaryKey  # get next available _SNP_ConsensusSnp_Marker_key 
     global snpMrkFile  # get bcp file name prefix

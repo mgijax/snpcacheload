@@ -60,7 +60,6 @@
 
 import sys
 import os
-import string
 import loadlib
 import db
 import io
