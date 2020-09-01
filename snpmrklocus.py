@@ -1,4 +1,3 @@
-#!/usr/local/bin/python -x
 
 #  snpmrklocus.py
 ###########################################################################
@@ -64,7 +63,7 @@ import os
 import string
 import loadlib
 import db
-import StringIO
+import io
 #
 #  CONSTANTS
 #
@@ -87,7 +86,7 @@ user = os.environ['MGD_DBUSER']
 #print server
 #print database
 
-# lookup to resolve function class string to key
+# lookup to resolve function class str.to key
 fxnLookup = {}
 
 #
@@ -105,7 +104,7 @@ def initialize():
     global fxnLookup
     global tmpFxnTable, tmpFxnFile, fpTmpFxn
 
-    print 'Perform initialization'
+    print('Perform initialization')
     sys.stdout.flush()
 
     #
@@ -121,11 +120,11 @@ def initialize():
     db.useOneConnection(1)
     db.setReturnAsSybase(False)
     results = db.sql('''
-    	SELECT t._Term_key
+        SELECT t._Term_key
         FROM VOC_Term t
         WHERE t._Vocab_key = 49 
         AND t.term = '%s'
-	''' % (LOCUS_REGION_TERM), 'auto')
+        ''' % (LOCUS_REGION_TERM), 'auto')
     locusRegionKey = results[1][0]
 
     #
@@ -164,28 +163,28 @@ def finalize():
 def createBCPFile():
     global fpTmpFxn
 
-    print 'Get locus-region SNP/marker annotations'
+    print('Get locus-region SNP/marker annotations')
     sys.stdout.flush()
 
     results = db.sql('''
-    	SELECT sm._ConsensusSnp_Marker_key, 
-        	sc.startCoordinate as snpLoc, 
-        	mc.startCoordinate as markerStart, 
-        	mc.endCoordinate as markerEnd, 
-        	mc.strand as markerStrand 
+        SELECT sm._ConsensusSnp_Marker_key, 
+                sc.startCoordinate as snpLoc, 
+                mc.startCoordinate as markerStart, 
+                mc.endCoordinate as markerEnd, 
+                mc.strand as markerStrand 
         FROM SNP_ConsensusSnp_Marker sm, 
                 SNP_Coord_Cache sc, 
                 MRK_Location_Cache mc 
         WHERE sm._ConsensusSnp_key = sc._ConsensusSnp_key 
                 AND sm._Coord_Cache_key = sc._Coord_Cache_key 
                 AND sm._Marker_key = mc._Marker_key 
-		AND mc._Organism_key = 1 
+                AND mc._Organism_key = 1 
                 AND sm._Fxn_key = %s 
                 AND mc.startCoordinate IS NOT NULL 
                 AND mc.endCoordinate IS NOT NULL 
-		''' % (locusRegionKey), 'auto')
+                ''' % (locusRegionKey), 'auto')
 
-    print 'Create the bcp file'
+    print('Create the bcp file')
     sys.stdout.flush()
 
     for r in results[1]:
@@ -228,19 +227,19 @@ def createBCPFile():
         #  If the SNP coordinate is <= the midpoint of the marker
         #  and strand is Null, the SNP is considered to be proximal
         #
-	elif markerStrand == None and snpLoc <= midPoint:
-	    direction = 'proximal'
-	#
-	#  If the SNP coordinate is > the midpoint of the marker
-	#  and strand is Null, the SNP is considered to be downstream.
-	#
-	elif markerStrand == None and snpLoc > midPoint:
-	    direction = 'distal'
-	else:
-	    print 'not covered by algorithm'
-	    print '    primaryKey: %s snpLoc: %s markerStart: %s markerEnd: %s markerStrand: %s' % ( primaryKey, snpLoc, markerStart, markerEnd, markerEnd) 
+        elif markerStrand == None and snpLoc <= midPoint:
+            direction = 'proximal'
+        #
+        #  If the SNP coordinate is > the midpoint of the marker
+        #  and strand is Null, the SNP is considered to be downstream.
+        #
+        elif markerStrand == None and snpLoc > midPoint:
+            direction = 'distal'
+        else:
+            print('not covered by algorithm')
+            print('    primaryKey: %s snpLoc: %s markerStart: %s markerEnd: %s markerStrand: %s' % ( primaryKey, snpLoc, markerStart, markerEnd, markerEnd)) 
 
-	fpTmpFxn.write(str(primaryKey) + DL + direction + CRT)
+        fpTmpFxn.write(str(primaryKey) + DL + direction + CRT)
 
     #
     #  Close the bcp file.
@@ -259,23 +258,23 @@ def createBCPFile():
 def loadBCPFile():
     global tmpFxnTable, tmpFxnFile
 
-    print 'Create the temp table'
+    print('Create the temp table')
     sys.stdout.flush()
     db.sql('''
-    	CREATE TEMPORARY TABLE %s
+        CREATE TEMPORARY TABLE %s
         (_ConsensusSnp_Marker_key int not null,
          direction varchar not null
-	)
-	''' % (tmpFxnTable), None)
+        )
+        ''' % (tmpFxnTable), None)
 
-    print 'Load the bcp file into the temp table'
+    print('Load the bcp file into the temp table')
     sys.stdout.flush()
 
     tmpFile = open(tmpFxnFile, 'r')
     db.executeCopyFrom(tmpFile, tmpFxnTable, DL)
     db.commit()
 
-    print 'Create indexes on the temp table'
+    print('Create indexes on the temp table')
     sys.stdout.flush()
     db.sql('CREATE index idx1 on %s (_ConsensusSnp_Marker_key)' % (tmpFxnTable), None)
     db.sql('CREATE index idx2 on %s (direction)' % (tmpFxnTable), None)
@@ -289,21 +288,21 @@ def loadBCPFile():
 def applyUpdates():
     global tmpFxnTable
 
-    print 'Update the distance direction'
+    print('Update the distance direction')
     sys.stdout.flush()
 
     db.sql('''
-    	UPDATE SNP_ConsensusSnp_Marker sm 
+        UPDATE SNP_ConsensusSnp_Marker sm 
         SET distance_direction = t.direction
         FROM %s t
         WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key
-	''' % (tmpFxnTable), 'auto')
+        ''' % (tmpFxnTable), 'auto')
 
     results = db.sql('''
-    	SELECT t.* 
-	FROM SNP_ConsensusSnp_Marker sm, %s t
-	WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key
-	''' % (tmpFxnTable), 'auto')
+        SELECT t.* 
+        FROM SNP_ConsensusSnp_Marker sm, %s t
+        WHERE sm._ConsensusSnp_Marker_key = t._ConsensusSnp_Marker_key
+        ''' % (tmpFxnTable), 'auto')
     db.commit()
 #
 #  MAIN

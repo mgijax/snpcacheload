@@ -200,7 +200,7 @@ cd ${CACHEDATADIR}
 
 date | tee -a ${SNPMARKER_LOG}
 echo "Calling snpmarker.py" | tee -a ${SNPMARKER_LOG}
-${SNPCACHELOAD}/snpmarker.py >> ${SNPMARKER_LOG} 2>&1
+${PYTHON} ${SNPCACHELOAD}/snpmarker.py >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 if [ ${STAT} -ne 0 ]
 then
@@ -259,7 +259,7 @@ then
     date | tee -a ${SNPMARKER_LOG}
     echo "Calling snpmrklocus.py" | tee -a ${SNPMARKER_LOG}
     echo "" | tee -a ${SNPMARKER_LOG}
-    ${SNPCACHELOAD}/snpmrklocus.py >> ${SNPMARKER_LOG} 2>&1
+    ${PYTHON} ${SNPCACHELOAD}/snpmrklocus.py >> ${SNPMARKER_LOG} 2>&1
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then
@@ -274,7 +274,7 @@ then
     date | tee -a ${SNPMARKER_LOG}
     echo "Calling snpmrkwithin.py" | tee -a ${SNPMARKER_LOG}
     echo "" | tee -a ${SNPMARKER_LOG}
-    ${SNPCACHELOAD}/snpmrkwithin.py >> ${SNPMARKER_LOG} 2>&1
+    ${PYTHON} ${SNPCACHELOAD}/snpmrkwithin.py >> ${SNPMARKER_LOG} 2>&1
     STAT=$?
     if [ ${STAT} -ne 0 ]
     then

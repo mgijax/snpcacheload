@@ -1,4 +1,3 @@
-#!/usr/local/bin/python
 
 #  snpmrkwithin.py
 ###########################################################################
@@ -71,7 +70,7 @@ import db
 
 # error messages written to stdout
 SNP_NOT_WITHIN  = 'Warning: SNP %s not within %s +/- bp of marker %s ' + \
-		  '- this should never happen'
+                  '- this should never happen'
 
 #
 #  CONSTANTS
@@ -85,13 +84,13 @@ WITHIN_COORD_TERM = 'within coordinates of'
 WITHIN_KB_TERM = 'within distance of'
 
 MARKER_PAD      = 10000	# max number of BP away a SNP can be FROM a
-			# marker to compute a SNP-marker association
+                        # marker to compute a SNP-marker association
 
 # max number of SNPs in chr region to process at at time
-MAX_NUMBER_SNPS = string.atoi(os.environ['MAX_QUERY_BATCH'])
+MAX_NUMBER_SNPS = str.atoi(os.environ['MAX_QUERY_BATCH'])
 
 # max number of lines per bcp file to avoid file > 2Gb
-MAX_BCP_LINES = string.atoi(os.environ['MAX_BCP_LINES'])
+MAX_BCP_LINES = str.atoi(os.environ['MAX_BCP_LINES'])
 
 #
 # GLOBALS
@@ -109,7 +108,7 @@ snpMrkFile = None
 # file pointer for the bcp file
 fpSnpMrk = None
 
-# lookup to resolve function class string to key
+# lookup to resolve function class str.to key
 fxnLookup = {}
 
 # list of chromosomes to process
@@ -137,12 +136,12 @@ def initialize():
     #
     # The following globals will be initialized
     #
-    global fxnLookup   # create lookup to resolve function class string to key
+    global fxnLookup   # create lookup to resolve function class str.to key
     global chrList     # create list of chromosomes to process
     global primaryKey  # get next available _SNP_ConsensusSnp_Marker_key 
     global snpMrkFile  # get bcp file name prefix
 
-    print 'Perform initialization'
+    print('Perform initialization')
     sys.stdout.flush()
 
     #
@@ -165,13 +164,13 @@ def initialize():
     #
     results = db.sql('''
         SELECT t._Term_key, t.term 
-	FROM VOC_Term t 
-	WHERE t._Vocab_key = 49
-	AND t.term LIKE 'within % of' 
-	''', 'auto')
+        FROM VOC_Term t 
+        WHERE t._Vocab_key = 49
+        AND t.term LIKE 'within % of' 
+        ''', 'auto')
 
     for r in results[1]:
-	fxnLookup[r[1]] = r[0]
+        fxnLookup[r[1]] = r[0]
 
     #
     #  Create of list of chromosomes.
@@ -189,7 +188,7 @@ def initialize():
                      FROM SNP_ConsensusSnp_Marker''', 'auto')
     primaryKey = results[1][0][0]
     if primaryKey == None:
-	sys.stderr.write('SNP_ConsensusSnp_Marker table is empty, load dbSNP Marker associations first')
+        sys.stderr.write('SNP_ConsensusSnp_Marker table is empty, load dbSNP Marker associations first')
         sys.exit(1)
     primaryKey += 1
     openBCPFile()
@@ -212,19 +211,19 @@ def process():
     #  results set.
     #
     for chr in chrList:
-	
-	print '%sQuery for max SNP coordinate on chr %s' % (CRT, chr)
-	results = db.sql('''
-	        SELECT MAX(startCoordinate) as maxCoord 
+        
+        print('%sQuery for max SNP coordinate on chr %s' % (CRT, chr))
+        results = db.sql('''
+                SELECT MAX(startCoordinate) as maxCoord 
                 FROM SNP_Coord_Cache 
                 WHERE chromosome = '%s' 
-		''' % (chr), 'auto')
-	maxCoord = (results[1][0][0])
-	print 'Max coord on chr %s %s' % (chr, maxCoord)
-	print 'Get SNP/marker pairs for chromosome %s' % chr
-	sys.stdout.flush()
-	binProcess(chr, 1, maxCoord)
-    	sys.stdout.flush()
+                ''' % (chr), 'auto')
+        maxCoord = (results[1][0][0])
+        print('Max coord on chr %s %s' % (chr, maxCoord))
+        print('Get SNP/marker pairs for chromosome %s' % chr)
+        sys.stdout.flush()
+        binProcess(chr, 1, maxCoord)
+        sys.stdout.flush()
 
     return
 
@@ -280,34 +279,34 @@ def openBCPFile():
 
 def binProcess(chr, startCoord, endCoord):
 
-	results = db.sql('''
-	        SELECT COUNT(_ConsensusSnp_key) as snpCount 
+        results = db.sql('''
+                SELECT COUNT(_ConsensusSnp_key) as snpCount 
                 FROM SNP_Coord_Cache 
                 WHERE chromosome = '%s'
                 AND startCoordinate BETWEEN %s AND %s
-		''' % (chr, startCoord, endCoord), 'auto')
+                ''' % (chr, startCoord, endCoord), 'auto')
 
-	snpCount = results[1][0][0]
-	print 'Total snp coordinates on chr %s between coord %s and %s is %s' \
-				% (chr, startCoord, endCoord, snpCount)
-	sys.stdout.flush()
-	if snpCount < MAX_NUMBER_SNPS:
-	    processSNPregion(chr, startCoord, endCoord)
+        snpCount = results[1][0][0]
+        print('Total snp coordinates on chr %s between coord %s and %s is %s' \
+                                % (chr, startCoord, endCoord, snpCount))
+        sys.stdout.flush()
+        if snpCount < MAX_NUMBER_SNPS:
+            processSNPregion(chr, startCoord, endCoord)
 
-	else:
-	    print 'snp coord count %s > MAX_NUMBER_SNPS %s, recursing' \
-					% (snpCount, MAX_NUMBER_SNPS)
-	    midpt = (endCoord + startCoord)/2
+        else:
+            print('snp coord count %s > MAX_NUMBER_SNPS %s, recursing' \
+                                        % (snpCount, MAX_NUMBER_SNPS))
+            midpt = (endCoord + startCoord)/2
 
-	    print 'Calling binProcess(chr %s, startCoord %s, midpt %s)' \
-					% (chr, startCoord, midpt)
-	    binProcess(chr, startCoord, midpt)
+            print('Calling binProcess(chr %s, startCoord %s, midpt %s)' \
+                                        % (chr, startCoord, midpt))
+            binProcess(chr, startCoord, midpt)
 
-	    print 'Calling binProcess(chr %s, midpt+1 %s, endCoord %s)' \
-					% (chr, midpt+1, endCoord)
-	    binProcess(chr, midpt + 1, endCoord)
+            print('Calling binProcess(chr %s, midpt+1 %s, endCoord %s)' \
+                                        % (chr, midpt+1, endCoord))
+            binProcess(chr, midpt + 1, endCoord)
 
-	return
+        return
 
 # Purpose: Process all SNPs within the startCoord-endCoord range on the given
 #	   chromosome. 
@@ -320,184 +319,183 @@ def binProcess(chr, startCoord, endCoord):
 # Throws: Nothing
 
 def processSNPregion(chr, startCoord, endCoord):
-	# 
-	# Terminology:
-	# SNPregion	- the region of the chromosome between 'startCoord'
-	#			'endCoord' (passed to this routine)
-	#
-	# MarkerRegion	- the region of the chr including SNPregion and
-	#			MARKER_PAD BP on either side of SNPregion
-	#
-	# left of, right of - A is "left of" B if in
-	#		the chr region we are working on, A's coord is less
+        # 
+        # Terminology:
+        # SNPregion	- the region of the chromosome between 'startCoord'
+        #			'endCoord' (passed to this routine)
+        #
+        # MarkerRegion	- the region of the chr including SNPregion and
+        #			MARKER_PAD BP on either side of SNPregion
+        #
+        # left of, right of - A is "left of" B if in
+        #		the chr region we are working on, A's coord is less
 
-	#		than B's (or if A and B are intervals, A's endCoord
-	#		is less than B's startCoord.
-	#		"right of" is defined similarly.
-	# Algorithm Outline:
-	# 1) Query Postgres for all the SNPs in the SNPregion, ordered by SNP
-	#     location. Call this SNPlist.
-	# 2) Query Postgres for all markers in the MarkerRegion.
-	#     Call this MarkerList.
-	# 3) Query Postgres for the ExcludeList - all SNP-Marker
-	#     pairs (in the region) that are already related by a dbSNP
-	#     association (we do not output SNP-Marker associations for these)
-	# 
-	# 4) Compute the "join" between markers and SNPs that are within
-	#    MARKER_PAD of each other. We do this here, rather than asking
-	#    Postgres to do it as we can do it more efficiently. Here is how:
-	# 
-	# For each marker in MarkerList # i.e., the typically smaller list
-	#     do binary search to find  # i.e., bin search the larger list
-	#     the SNP w/ highest coord that is <= marker.endcoord+MARKER_PAD
-	#     (any SNPs right of this do not have to be considered for this
-	#     marker)
-	# 
-	#     Starting w/ this SNP, scan backward (left) through the SNPlist
-	#     computing SNP-marker relationships for the marker
-	#     (using ExcludeList),
-	#     until we find a SNP w/ location < marker.startcoord-MARKER_PAD
-	#     (any SNPs left of this do not have be considered for this marker)
-	# 
-	# Done.
-	# 
-	# Credits: Joel had the idea to use binary search to quickly find the
-	# spot in the SNPlist to start computing SNP-marker associations.  He
-	# thought this up to handle the more general case of two sets of
-	# features (intervals) that you want to compute overlaps between.
-	# For the general case (where we would have a set of intervals instead
-	# of SNPs w/ a single coordinate), there is more preprocessing needed.
-	# 
-	# How we handle the ExcludeList:
+        #		than B's (or if A and B are intervals, A's endCoord
+        #		is less than B's startCoord.
+        #		"right of" is defined similarly.
+        # Algorithm Outline:
+        # 1) Query Postgres for all the SNPs in the SNPregion, ordered by SNP
+        #     location. Call this SNPlist.
+        # 2) Query Postgres for all markers in the MarkerRegion.
+        #     Call this MarkerList.
+        # 3) Query Postgres for the ExcludeList - all SNP-Marker
+        #     pairs (in the region) that are already related by a dbSNP
+        #     association (we do not output SNP-Marker associations for these)
+        # 
+        # 4) Compute the "join" between markers and SNPs that are within
+        #    MARKER_PAD of each other. We do this here, rather than asking
+        #    Postgres to do it as we can do it more efficiently. Here is how:
+        # 
+        # For each marker in MarkerList # i.e., the typically smaller list
+        #     do binary search to find  # i.e., bin search the larger list
+        #     the SNP w/ highest coord that is <= marker.endcoord+MARKER_PAD
+        #     (any SNPs right of this do not have to be considered for this
+        #     marker)
+        # 
+        #     Starting w/ this SNP, scan backward (left) through the SNPlist
+        #     computing SNP-marker relationships for the marker
+        #     (using ExcludeList),
+        #     until we find a SNP w/ location < marker.startcoord-MARKER_PAD
+        #     (any SNPs left of this do not have be considered for this marker)
+        # 
+        # Done.
+        # 
+        # Credits: Joel had the idea to use binary search to quickly find the
+        # spot in the SNPlist to start computing SNP-marker associations.  He
+        # thought this up to handle the more general case of two sets of
+        # features (intervals) that you want to compute overlaps between.
+        # For the general case (where we would have a set of intervals instead
+        # of SNPs w/ a single coordinate), there is more preprocessing needed.
+        # 
+        # How we handle the ExcludeList:
         # 1) actually stored as a dictionary, see ExcludeDict, below.
         #
         #     We tried using getting the ExcludeList ordered by snp key and
-	#     looking up the snps by binary search, but that took longer.
-	#
-	# Notes:
-	# a) since we don't actually store all SNP-marker relationships here,
-	#	we can probably increase MAX_NUMBER_SNPS. Either SNPlist or
-	#	ExcludeDict will be the biggest data structures here.
-	# 
-	# The Data Structures:
-	#
-	# * SNPlist is the list of all Consensus_SNPs that lie in the coord
-	#	range - ORDERED BY SNP coord.
-	# 	Each SNP on SNPlist is
-	#	(_ConsensusSnp_key, _Coord_Cache_key, snpLoc)
-	#	- populated by SQL query
-	#
-	# * Markers is the list of all Markers (w/ coordinates) in MarkerRegion
-	# 	Each Marker on Markers is
-	#	(_Marker_key, markerStart, markerEnd, markerStrand)
-	#	- populated by SQL query
-	#	- For now, order is unimportant. Could order by increasing
-	#	  endCoordinate, then as we process markers, we could
-	#	  increase the start coord of the binary search for SNPs...
-	#
-	# * ExcludeDict is the dict of (_ConsensusSnp_key, _Marker_key) pairs
-	#       for SNPs in the SNPregion that are already associated by
-	#	dbSNP associations
+        #     looking up the snps by binary search, but that took longer.
+        #
+        # Notes:
+        # a) since we don't actually store all SNP-marker relationships here,
+        #	we can probably increase MAX_NUMBER_SNPS. Either SNPlist or
+        #	ExcludeDict will be the biggest data structures here.
+        # 
+        # The Data Structures:
+        #
+        # * SNPlist is the list of all Consensus_SNPs that lie in the coord
+        #	range - ORDERED BY SNP coord.
+        # 	Each SNP on SNPlist is
+        #	(_ConsensusSnp_key, _Coord_Cache_key, snpLoc)
+        #	- populated by SQL query
+        #
+        # * Markers is the list of all Markers (w/ coordinates) in MarkerRegion
+        # 	Each Marker on Markers is
+        #	(_Marker_key, markerStart, markerEnd, markerStrand)
+        #	- populated by SQL query
+        #	- For now, order is unimportant. Could order by increasing
+        #	  endCoordinate, then as we process markers, we could
+        #	  increase the start coord of the binary search for SNPs...
+        #
+        # * ExcludeDict is the dict of (_ConsensusSnp_key, _Marker_key) pairs
+        #       for SNPs in the SNPregion that are already associated by
+        #	dbSNP associations
 
-	print 'SNPlist Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
-	sys.stdout.flush()
+        print('SNPlist Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        sys.stdout.flush()
 
-	# query to fill SNPlist
-	SNPs = db.sql('''
-	        SELECT sc._ConsensusSnp_key,
-		       sc._Coord_Cache_key, 
-		       sc.startCoordinate as snpLoc
-		FROM SNP_Coord_Cache sc 
-		WHERE sc.chromosome = '%s' 
-		AND sc.startCoordinate BETWEEN %s AND %s 
-		ORDER BY sc.startCoordinate
-		''' % (chr, startCoord, endCoord), 'auto')
-	SNPlist = SNPs[1]
-	print 'SNPlist Query end time: %s' \
-		    % time.strftime("%H.%M.%S.%m.%d.%y",  \
-		    time.localtime(time.time()))
-	sys.stdout.flush()
+        # query to fill SNPlist
+        SNPs = db.sql('''
+                SELECT sc._ConsensusSnp_key,
+                       sc._Coord_Cache_key, 
+                       sc.startCoordinate as snpLoc
+                FROM SNP_Coord_Cache sc 
+                WHERE sc.chromosome = '%s' 
+                AND sc.startCoordinate BETWEEN %s AND %s 
+                ORDER BY sc.startCoordinate
+                ''' % (chr, startCoord, endCoord), 'auto')
+        SNPlist = SNPs[1]
+        print('SNPlist Query end time: %s' \
+                    % time.strftime("%H.%M.%S.%m.%d.%y",  \
+                    time.localtime(time.time())))
+        sys.stdout.flush()
 
-	print 'Marker Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
-	sys.stdout.flush()
+        print('Marker Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        sys.stdout.flush()
 
-	# query to fill Markers
-	# exclude: withdrawn markers, marker type QTL and Cytogenetic, feature type heritable phenotypic
-	Markers = db.sql('''
-	        SELECT mc._Marker_key, 
-		       mc.startCoordinate as markerStart,
-		       mc.endCoordinate as markerEnd, 
-		       mc.strand as markerStrand 
-		FROM MRK_Location_Cache mc, MRK_Marker m, MRK_MCV_Cache mcv
-		WHERE mc._Marker_Type_key not in (3, 6) 
-		AND mc._Organism_key = 1
-		AND mc.genomicchromosome = '%s' 
-		AND mc.endCoordinate >= %s 
-		AND mc.startCoordinate <= %s
-		AND mc._Marker_key = m._Marker_key
-		AND m._Marker_Status_key = 1
-		AND m._Marker_key = mcv._Marker_key
-		AND mcv.qualifier = 'D'
-		AND mcv._mcvTerm_key != 6238170
-		''' % (chr, startCoord-MARKER_PAD, endCoord+MARKER_PAD), 'auto')
+        # query to fill Markers
+        # exclude: withdrawn markers, marker type QTL and Cytogenetic, feature type heritable phenotypic
+        Markers = db.sql('''
+                SELECT mc._Marker_key, 
+                       mc.startCoordinate as markerStart,
+                       mc.endCoordinate as markerEnd, 
+                       mc.strand as markerStrand 
+                FROM MRK_Location_Cache mc, MRK_Marker m, MRK_MCV_Cache mcv
+                WHERE mc._Marker_Type_key not in (3, 6) 
+                AND mc._Organism_key = 1
+                AND mc.genomicchromosome = '%s' 
+                AND mc.endCoordinate >= %s 
+                AND mc.startCoordinate <= %s
+                AND mc._Marker_key = m._Marker_key
+                AND m._Marker_Status_key = 1
+                AND m._Marker_key = mcv._Marker_key
+                AND mcv.qualifier = 'D'
+                AND mcv._mcvTerm_key != 6238170
+                ''' % (chr, startCoord-MARKER_PAD, endCoord+MARKER_PAD), 'auto')
 
-	print 'Marker Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
-	sys.stdout.flush()
+        print('Marker Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        sys.stdout.flush()
 
-	print 'ExcludeList Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
-	sys.stdout.flush()
+        print('ExcludeList Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        sys.stdout.flush()
 
-	# query to get ExcludeList
-	ExcludeList = db.sql('''
-	        SELECT cm._ConsensusSnp_key, 
-		       cm._Marker_key 
-		FROM SNP_Coord_Cache sc, SNP_ConsensusSnp_Marker cm 
-		WHERE sc.chromosome = '%s'
-		AND sc.startCoordinate BETWEEN %s AND %s 
-		AND sc._ConsensusSnp_key = cm._ConsensusSnp_key
-		''' % (chr, startCoord, endCoord), 'auto')
+        # query to get ExcludeList
+        ExcludeList = db.sql('''
+                SELECT cm._ConsensusSnp_key, 
+                       cm._Marker_key 
+                FROM SNP_Coord_Cache sc, SNP_ConsensusSnp_Marker cm 
+                WHERE sc.chromosome = '%s'
+                AND sc.startCoordinate BETWEEN %s AND %s 
+                AND sc._ConsensusSnp_key = cm._ConsensusSnp_key
+                ''' % (chr, startCoord, endCoord), 'auto')
 
-	print 'ExcludeList Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
-	sys.stdout.flush()
+        print('ExcludeList Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        sys.stdout.flush()
 
-	ExcludeDict = {}	# empty the exclude list
-	for r in ExcludeList[1]:
-	    ExcludeDict[(r[0],r[1])] = 1
+        ExcludeDict = {}	# empty the exclude list
+        for r in ExcludeList[1]:
+            ExcludeDict[(r[0],r[1])] = 1
 
-	#
-	#  Process each SNP on SNPlist
-	#
-	print 'Process SNPlist start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))
-	sys.stdout.flush()
-	idxLastSnp = len(SNPlist)-1	# index of last SNP in SNPlist
-	prevSnpIdx = 0			# index of SNP found on prev iteration
-					# (start binary search from there)
-	for curMarker in Markers[1]:
-	    markerKey   = curMarker[0]
-	    markerStart = curMarker[1]
-	    markerEnd   = curMarker[2]
+        #
+        #  Process each SNP on SNPlist
+        #
+        print('Process SNPlist start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        sys.stdout.flush()
+        idxLastSnp = len(SNPlist)-1	# index of last SNP in SNPlist
+        prevSnpIdx = 0			# index of SNP found on prev iteration
+                                        # (start binary search from there)
+        for curMarker in Markers[1]:
+            markerKey   = curMarker[0]
+            markerStart = curMarker[1]
+            markerEnd   = curMarker[2]
 
-	    # use binary search to find the index in SNPlist of the
-	    #  farthest "right" SNP to consider for this marker
-	    snpIdx = listBinarySearch(SNPlist, 2, \
-		markerEnd+MARKER_PAD, prevSnpIdx, idxLastSnp)
-	    # iterate backward through the SNPs from snpIdx and
-	    #  process SNP-Marker pairs.
-	    #  (deal w/ boundary condition, no SNP is within range?)
+            # use binary search to find the index in SNPlist of the
+            #  farthest "right" SNP to consider for this marker
+            snpIdx = listBinarySearch(SNPlist, 2, \
+                markerEnd+MARKER_PAD, prevSnpIdx, idxLastSnp)
+            # iterate backward through the SNPs from snpIdx and
+            #  process SNP-Marker pairs.
+            #  (deal w/ boundary condition, no SNP is within range?)
 
-	    i = snpIdx
-	    leftmostCoord = markerStart-MARKER_PAD
-	    while (i >= 0 and SNPlist[i][2] >= leftmostCoord):
+            i = snpIdx
+            leftmostCoord = markerStart-MARKER_PAD
+            while (i >= 0 and SNPlist[i][2] >= leftmostCoord):
 
-		if ( not ExcludeDict.has_key( \
-			(SNPlist[i][0], markerKey))):
-		    processSNPmarkerPair(SNPlist[i], curMarker)
-		i = i-1
-	    # prevSnpIdx = snpIdx
-	    # end SNP loop
-        print 'Process SNPlist end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time()))	
-	sys.stdout.flush()
-	return
+                if ( (SNPlist[i][0], markerKey) not in ExcludeDict):
+                    processSNPmarkerPair(SNPlist[i], curMarker)
+                i = i-1
+            # prevSnpIdx = snpIdx
+            # end SNP loop
+        print('Process SNPlist end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))	
+        sys.stdout.flush()
+        return
 
 
 # Purpose: Process a SNP-marker pair where the SNP and marker are within
@@ -511,7 +509,7 @@ def processSNPregion(chr, startCoord, endCoord):
 # Throws: Nothing
 
 def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
-			 marker): # dictionary w/ keys as above
+                         marker): # dictionary w/ keys as above
     # current number of bcp lines written to the current bcp file
     global bcpLines
 
@@ -533,20 +531,20 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     #  The SNP is located within the coordinates of the marker.
     #
     if snpLoc >= markerStart and snpLoc <= markerEnd:
-	sys.stdout.flush()
-	fxnKey = fxnLookup[WITHIN_COORD_TERM]
-	dirDist = ['not applicable', 0]
+        sys.stdout.flush()
+        fxnKey = fxnLookup[WITHIN_COORD_TERM]
+        dirDist = ['not applicable', 0]
     #
     #  The SNP must be located within one of the pre-defined "KB"
     #  distances from the marker. Check each distance (starting
     #  with the small range) to see which one it is.
     #
     else:
-    	sys.stdout.flush()
+        sys.stdout.flush()
         dirDist = getKBTerm(snpLoc, markerStart, markerEnd, markerStrand)
     
     if dirDist == []:
-        print SNP_NOT_WITHIN % (snp, MARKER_PAD, marker)
+        print(SNP_NOT_WITHIN % (snp, MARKER_PAD, marker))
         sys.sys.stdout.flush()
         return
     # otherwise direction and distance are set. If fxnKey not yet set ([0, 'not applicable']
@@ -560,9 +558,9 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     # check the number of bcp lines in the current file, creating
     # new file if >= the configured max
     if bcpLines >= MAX_BCP_LINES:
-	fpSnpMrk.close()
-	openBCPFile()
-	bcpLines = 0
+        fpSnpMrk.close()
+        openBCPFile()
+        bcpLines = 0
 
     #
     #  Write a record to the bcp file that annotates the SNP/marker
@@ -570,11 +568,11 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     #
     sys.stdout.flush()
     fpSnpMrk.write(str(primaryKey) + DL + \
-		   str(snpKey) + DL + \
-		   str(markerKey) + DL + \
-		   str(fxnKey) + DL + \
-		   str(featureKey) + DL + \
-		   NULL + DL + NULL + DL + \
+                   str(snpKey) + DL + \
+                   str(markerKey) + DL + \
+                   str(fxnKey) + DL + \
+                   str(featureKey) + DL + \
+                   NULL + DL + NULL + DL + \
                    NULL + DL + NULL + DL + \
                    str(distance) + DL + str(direction) + DL + CRT)
 
@@ -610,42 +608,42 @@ def getKBTerm(snpLoc, markerStart, markerEnd, markerStrand):
     #
     if markerStrand == '+' and snpLoc <= midPoint:
         direction = 'upstream'
- 	distance = markerStart - snpLoc
+        distance = markerStart - snpLoc
     #
     #  If the SNP coordinate is > the midpoint of the marker on a
     #  "+" strand, the SNP is considered to be downstream.
     #
     elif markerStrand == '+' and snpLoc > midPoint:
         direction = 'downstream'
-	distance = snpLoc - markerEnd
+        distance = snpLoc - markerEnd
     #
     #  If the SNP coordinate is <= the midpoint of the marker on a
     #  "-" strand, the SNP is considered to be downstream.
     #
     elif markerStrand == '-' and snpLoc <= midPoint:
         direction = 'downstream'
-	distance = markerStart - snpLoc
+        distance = markerStart - snpLoc
     #
     #  If the SNP coordinate is > the midpoint of the marker on a
     #  "-" strand, the SNP is considered to be upstream.
     #
     elif markerStrand == '-' and snpLoc > midPoint:
         direction = 'upstream'
-	distance = snpLoc - markerEnd
+        distance = snpLoc - markerEnd
     #
     #  If the SNP coordinate is <= the midpoint of the marker
     #  and strand is Null, the SNP is considered to be proximal
     #
     elif markerStrand == None and snpLoc <= midPoint:
         direction = 'proximal'
-	distance = markerStart - snpLoc
+        distance = markerStart - snpLoc
     #
     #  If the SNP coordinate is > the midpoint of the marker
     #  and strand is Null, the SNP is considered to be downstream.
     #
     elif markerStrand == None and snpLoc > midPoint:
         direction = 'distal'
-	distance = snpLoc - markerEnd
+        distance = snpLoc - markerEnd
     else:
         return []
     dirDistList = [direction, distance]
@@ -663,30 +661,30 @@ def getKBTerm(snpLoc, markerStart, markerEnd, markerStrand):
 # Throws: Nothing
 
 def listBinarySearch(list,	# the list to search, sorted by keyField
-		     keyField, 	# the name of the dict field of the sort key
-		     searchKey, # the value to look for
-		     bottomIdx, # lowest index in list[] to search
-		     topIdx):	# max index in list[] to search
+                     keyField, 	# the name of the dict field of the sort key
+                     searchKey, # the value to look for
+                     bottomIdx, # lowest index in list[] to search
+                     topIdx):	# max index in list[] to search
 
     found = 0
 
     while (bottomIdx != topIdx+1 and not found):
-	midIdx = (bottomIdx+topIdx)/2		# integer division?
-				# check that (0+1)/2 = 0, (3+4)/2 = 3, etc.
-				# sc - tested and performs as expected
-	listvalue = list[midIdx][keyField]
-	if searchKey == listvalue:
-	    found = 1
-	elif searchKey < listvalue:
-	    topIdx = midIdx -1
-	else:
-	    bottomIdx = midIdx +1
+        midIdx = (bottomIdx+topIdx)/2		# integer division?
+                                # check that (0+1)/2 = 0, (3+4)/2 = 3, etc.
+                                # sc - tested and performs as expected
+        listvalue = list[midIdx][keyField]
+        if searchKey == listvalue:
+            found = 1
+        elif searchKey < listvalue:
+            topIdx = midIdx -1
+        else:
+            bottomIdx = midIdx +1
     # end while
 
     if found:
-	return midIdx
+        return midIdx
     else:
-	return topIdx
+        return topIdx
 
 
 #
