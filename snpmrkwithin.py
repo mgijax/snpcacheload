@@ -673,7 +673,6 @@ def listBinarySearch(list,	# the list to search, sorted by keyField
                                 # sc - tested and performs as expected
         print(midIdx)
         print(keyField)
-        print(list)
         listvalue = list[midIdx][keyField]
         if searchKey == listvalue:
             found = 1
