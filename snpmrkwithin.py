@@ -668,13 +668,9 @@ def listBinarySearch(list,	# the list to search, sorted by keyField
     found = 0
 
     while (bottomIdx != topIdx+1 and not found):
-        print(bottomIdx)
-        print(topIdx)
         midIdx = int((bottomIdx+topIdx)/2)		# integer division?
                                 # check that (0+1)/2 = 0, (3+4)/2 = 3, etc.
                                 # sc - tested and performs as expected
-        print(midIdx)
-        print(keyField)
         listvalue = list[midIdx][keyField]
         if searchKey == listvalue:
             found = 1
