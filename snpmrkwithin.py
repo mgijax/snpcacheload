@@ -86,10 +86,10 @@ MARKER_PAD      = 10000	# max number of BP away a SNP can be FROM a
                         # marker to compute a SNP-marker association
 
 # max number of SNPs in chr region to process at at time
-MAX_NUMBER_SNPS = str.atoi(os.environ['MAX_QUERY_BATCH'])
+MAX_NUMBER_SNPS = str(os.environ['MAX_QUERY_BATCH'])
 
 # max number of lines per bcp file to avoid file > 2Gb
-MAX_BCP_LINES = str.atoi(os.environ['MAX_BCP_LINES'])
+MAX_BCP_LINES = str(os.environ['MAX_BCP_LINES'])
 
 #
 # GLOBALS
