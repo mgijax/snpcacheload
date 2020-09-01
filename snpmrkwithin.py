@@ -669,7 +669,7 @@ def listBinarySearch(list,	# the list to search, sorted by keyField
 
     while (bottomIdx != topIdx+1 and not found):
         print(bottomIdx)
-        print(toIdx)
+        print(topIdx)
         midIdx = (bottomIdx+topIdx)/2		# integer division?
                                 # check that (0+1)/2 = 0, (3+4)/2 = 3, etc.
                                 # sc - tested and performs as expected
