@@ -101,6 +101,6 @@ MAX_QUERY_BATCH=100000
 export MAX_BCP_LINES MAX_QUERY_BATCH
 
 # Are dbSNP and MGI coordinates synchronized (same mouse genome build) ?
-IN_SYNC=no
+IN_SYNC=yes
 
 export IN_SYNC
