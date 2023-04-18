@@ -112,18 +112,19 @@ def initialize():
 
     # query for all egId to marker associations
     # exclude: withdrawn markers, marker type QTL and Cytogenetic, feature type heritable phenotypic
-    results = db.sql('''SELECT a.accID AS egId, a._Object_key AS _Marker_key 
-        FROM ACC_Accession a, MRK_Marker m
+    results = db.sql('''SELECT a.accID AS egId, a._Object_key AS _Marker_key, m.symbol, c.startCoordinate, c.endCoordinate
+        FROM ACC_Accession a, MRK_Marker m, MRK_Location_Cache c
         WHERE a._LogicalDB_key = %s 
         AND a._MGIType_key = %s 
         AND a.preferred = 1 
         AND a._Object_key = m._Marker_key
         AND m._Marker_Status_key = 1
+        AND m._Marker_key = c._Marker_key
         ''' % (egLdbKey, mrkMgiTypeKey), 'auto' )
 
     print('count of marker/EG records %s\n' % len(results))
     for r in results:
-        markerLookup[r['egId']] = r['_Marker_key'] 
+        markerLookup[r['egId']] = [r['_Marker_key'] , r['startCoordinate'], r['endCoordinate'], r['symbol']]
 
     results = db.sql('''select * from  SNP_Transcript_Protein''', 'auto')
 
@@ -270,20 +271,36 @@ def writeBCP(results):
     for r in results:
         #print r
         # sys.stdout.flush()
+        rsId = r['rsId']
         egId = r['egId']
+        
         #print 'egId: %s' % egId
         sys.stdout.flush()
         #
         # if egId is not associated with an MGI marker, skip it  
         #
         if egId not in markerLookup:
-            print('egId not associated with MGI marker: %s' % egId)
+            print('egId not associated with MGI marker: %s for %s' % (egId, rsId))
             continue
 
-        #
-        # get the marker key for 'egId' and write a line to the bcp file
-        # 
-        markerKey = markerLookup[ egId ]
+        snpCoord = r['startCoord']             # the snp coordinate
+
+        markerList = markerLookup[ egId ]
+        markerKey = markerList[0]
+        markerStart = markerList[1]            # the marker start coord
+        markerEnd = markerList[2]              # the  marker end coord
+        mSymbol  = markerList[3]
+        if markerStart == None:
+            print('No marker coordinate for rsId: %s egId: %s snpCoord: %s markerSymbol: %s markerStart: %s markerEnd: %s'% (rsId, egId, snpCoord, mSymbol, markerStart, markerEnd))
+            continue
+        # check if snp_coord < marker_start OR snp_coord > marker_end, continue 
+        if snpCoord < markerStart or snpCoord > markerEnd:
+            print('snpCoord outside of marker coordinates  rsId: %s egId: %s snpCoord: %s markerSymbol: %s markerStart: %s markerEnd: %s' % (rsId, egId, snpCoord, mSymbol, markerStart, markerEnd))
+            continue
+
+
+        # Then check the refseq transcript(s)????
+
         primaryKey = primaryKey + 1
 
         allele = r['contig_allele']

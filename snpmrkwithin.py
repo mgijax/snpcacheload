@@ -44,6 +44,8 @@
 #
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
+#  09/06/2022  sc   WTS2-837 remap snp coordinates (b39) - not loading dbSNP marker
+#                     associations, so removed use of excludeDict
 #  11/23/2015  sc   TR11937/dbSNP 142
 #  01/25/2013  lec  TR11248/10788 - conversion to postgres
 #  09/01/2011  lec  TR10805/add _Organism_key = 1
@@ -119,7 +121,7 @@ database = os.environ['MGD_DBNAME']
 user = os.environ['MGD_DBUSER']
 
 # next available _SNP_ConsensusSnp_Marker_key
-primaryKey = None
+primaryKey = 1
 
 #
 #  FUNCTIONS
@@ -137,7 +139,7 @@ def initialize():
     #
     global fxnLookup   # create lookup to resolve function class string to key
     global chrList     # create list of chromosomes to process
-    global primaryKey  # get next available _SNP_ConsensusSnp_Marker_key 
+    #global primaryKey  # get next available _SNP_ConsensusSnp_Marker_key 
     global snpMrkFile  # get bcp file name prefix
 
     print('Perform initialization')
@@ -183,13 +185,13 @@ def initialize():
     #
     #  Get the max primary key for the SNP_ConsensusSnp_Marker table
     #
-    results = db.sql('''SELECT MAX(_ConsensusSnp_Marker_key) as key
-                     FROM SNP_ConsensusSnp_Marker''', 'auto')
-    primaryKey = results[1][0][0]
-    if primaryKey == None:
-        sys.stderr.write('SNP_ConsensusSnp_Marker table is empty, load dbSNP Marker associations first')
-        sys.exit(1)
-    primaryKey += 1
+    #results = db.sql('''SELECT MAX(_ConsensusSnp_Marker_key) as key
+    #                 FROM SNP_ConsensusSnp_Marker''', 'auto')
+    #primaryKey = results[1][0][0]
+    #if primaryKey == None:
+    #    sys.stderr.write('SNP_ConsensusSnp_Marker table is empty, load dbSNP Marker associations first')
+    #    sys.exit(1)
+    #primaryKey += 1
     openBCPFile()
 
     return
@@ -442,25 +444,25 @@ def processSNPregion(chr, startCoord, endCoord):
         print('Marker Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
         sys.stdout.flush()
 
-        print('ExcludeList Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
-        sys.stdout.flush()
+        #print('ExcludeList Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        #sys.stdout.flush()
 
         # query to get ExcludeList
-        ExcludeList = db.sql('''
-                SELECT cm._ConsensusSnp_key, 
-                       cm._Marker_key 
-                FROM SNP_Coord_Cache sc, SNP_ConsensusSnp_Marker cm 
-                WHERE sc.chromosome = '%s'
-                AND sc.startCoordinate BETWEEN %s AND %s 
-                AND sc._ConsensusSnp_key = cm._ConsensusSnp_key
-                ''' % (chr, startCoord, endCoord), 'auto')
+        #ExcludeList = db.sql('''
+        #        SELECT cm._ConsensusSnp_key, 
+        #               cm._Marker_key 
+        #        FROM SNP_Coord_Cache sc, SNP_ConsensusSnp_Marker cm 
+        #        WHERE sc.chromosome = '%s'
+        #        AND sc.startCoordinate BETWEEN %s AND %s 
+        #        AND sc._ConsensusSnp_key = cm._ConsensusSnp_key
+        #        ''' % (chr, startCoord, endCoord), 'auto')
 
-        print('ExcludeList Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
-        sys.stdout.flush()
+        #print('ExcludeList Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        #sys.stdout.flush()
 
-        ExcludeDict = {}	# empty the exclude list
-        for r in ExcludeList[1]:
-            ExcludeDict[(r[0],r[1])] = 1
+        #ExcludeDict = {}	# empty the exclude list
+        #for r in ExcludeList[1]:
+        #    ExcludeDict[(r[0],r[1])] = 1
 
         #
         #  Process each SNP on SNPlist
@@ -487,8 +489,8 @@ def processSNPregion(chr, startCoord, endCoord):
             leftmostCoord = markerStart-MARKER_PAD
             while (i >= 0 and SNPlist[i][2] >= leftmostCoord):
 
-                if ( (SNPlist[i][0], markerKey) not in ExcludeDict):
-                    processSNPmarkerPair(SNPlist[i], curMarker)
+                #if ( (SNPlist[i][0], markerKey) not in ExcludeDict):
+                processSNPmarkerPair(SNPlist[i], curMarker)
                 i = i-1
             # prevSnpIdx = snpIdx
             # end SNP loop
@@ -544,7 +546,7 @@ def processSNPmarkerPair(snp,	  # dictionary w/ keys as above
     
     if dirDist == []:
         print(SNP_NOT_WITHIN % (snp, MARKER_PAD, marker))
-        sys.sys.stdout.flush()
+        sys.stdout.flush()
         return
     # otherwise direction and distance are set. If fxnKey not yet set ([0, 'not applicable']
     # then set it
@@ -633,14 +635,16 @@ def getKBTerm(snpLoc, markerStart, markerEnd, markerStrand):
     #  If the SNP coordinate is <= the midpoint of the marker
     #  and strand is Null, the SNP is considered to be proximal
     #
-    elif markerStrand == None and snpLoc <= midPoint:
+    # '.' strand for VISTA and Ensembl Regulatory features loaded as Gene Models
+    # because seq_coord_cache does not allow nulls
+    elif (markerStrand == None or markerStrand == '.') and snpLoc <= midPoint:
         direction = 'proximal'
         distance = markerStart - snpLoc
     #
     #  If the SNP coordinate is > the midpoint of the marker
     #  and strand is Null, the SNP is considered to be downstream.
     #
-    elif markerStrand == None and snpLoc > midPoint:
+    elif (markerStrand == None or markerStrand == '.') and snpLoc > midPoint:
         direction = 'distal'
         distance = snpLoc - markerEnd
     else:

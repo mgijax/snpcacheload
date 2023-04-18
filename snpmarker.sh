@@ -198,15 +198,15 @@ cd ${CACHEDATADIR}
 # Load dbSNP marker relationships
 #
 
-date | tee -a ${SNPMARKER_LOG}
-echo "Calling snpmarker.py" | tee -a ${SNPMARKER_LOG}
-${PYTHON} ${SNPCACHELOAD}/snpmarker.py >> ${SNPMARKER_LOG} 2>&1
-STAT=$?
-if [ ${STAT} -ne 0 ]
-then
-    echo "snpmarker.py failed" | tee -a ${SNPMARKER_LOG}
-    exit 1
-fi
+#date | tee -a ${SNPMARKER_LOG}
+#echo "Calling snpmarker.py" | tee -a ${SNPMARKER_LOG}
+#${PYTHON} ${SNPCACHELOAD}/snpmarker.py >> ${SNPMARKER_LOG} 2>&1
+#STAT=$?
+#if [ ${STAT} -ne 0 ]
+#then
+#    echo "snpmarker.py failed" | tee -a ${SNPMARKER_LOG}
+#    exit 1
+#fi
 
 #
 # copy in SNP_ConsensusSnp_Marker, truncating and dropping/recreating indexes
@@ -217,28 +217,28 @@ fi
 date | tee -a ${SNPMARKER_LOG}
 echo "Truncate and drop indexes on SNP_ConsensusSnp_Marker; drop constraints"  | tee -a ${LOG}
 ${SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object >> ${SNPMARKER_LOG} 2>&1
-${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
+#${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
 ${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
 ${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_drop.object >> ${SNPMARKER_LOG} 2>&1
 ${SNP_DBSCHEMADIR}/key/SNP_Coord_Cache_drop.object >> ${SNPMARKER_LOG} 2>&1
 
-date | tee -a ${SNPMARKER_LOG}
-echo "copy in  ${SNP_MRK_TABLE}" | tee -a ${SNPMARKER_LOG}
-echo "" | tee -a ${SNPMARKER_LOG}
-${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${SNP_MRK_FILE} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
-STAT=$?
-echo "snpmarker.sh exit code from bulkLoadPostres ${STAT}"
-if [ ${STAT} -ne 0 ]
-then
-    echo "bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
-    exit 1
-fi
+#date | tee -a ${SNPMARKER_LOG}
+#echo "copy in  ${SNP_MRK_TABLE}" | tee -a ${SNPMARKER_LOG}
+#echo "" | tee -a ${SNPMARKER_LOG}
+#${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${SNP_MRK_FILE} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
+#STAT=$?
+#echo "snpmarker.sh exit code from bulkLoadPostres ${STAT}"
+#if [ ${STAT} -ne 0 ]
+#then
+#    echo "bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
+#    exit 1
+#fi
 
 # constraints will be added back at the end
-date | tee -a ${SNPMARKER_LOG}
-echo "Create index on SNP_ConsensusSnp_Marker"  | tee -a ${LOG}
-echo "" | tee -a ${SNPMARKER_LOG}
-${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
+#date | tee -a ${SNPMARKER_LOG}
+#echo "Create index on SNP_ConsensusSnp_Marker"  | tee -a ${LOG}
+#echo "" | tee -a ${SNPMARKER_LOG}
+#${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
 
 #
 # Load MGI snp/marker distance relationships
@@ -256,16 +256,16 @@ then
     # Update dbSNP locus-region function class to upstream/downstream
     #
 
-    date | tee -a ${SNPMARKER_LOG}
-    echo "Calling snpmrklocus.py" | tee -a ${SNPMARKER_LOG}
-    echo "" | tee -a ${SNPMARKER_LOG}
-    ${PYTHON} ${SNPCACHELOAD}/snpmrklocus.py >> ${SNPMARKER_LOG} 2>&1
-    STAT=$?
-    if [ ${STAT} -ne 0 ]
-    then
-        echo "${SNPCACHELOAD}/snpmrklocus.py failed" | tee -a ${SNPMARKER_LOG}
-        exit 1
-    fi
+    #date | tee -a ${SNPMARKER_LOG}
+    #echo "Calling snpmrklocus.py" | tee -a ${SNPMARKER_LOG}
+    #echo "" | tee -a ${SNPMARKER_LOG}
+    #${PYTHON} ${SNPCACHELOAD}/snpmrklocus.py >> ${SNPMARKER_LOG} 2>&1
+    #STAT=$?
+    #if [ ${STAT} -ne 0 ]
+    #then
+    #    echo "${SNPCACHELOAD}/snpmrklocus.py failed" | tee -a ${SNPMARKER_LOG}
+    #    exit 1
+    #fi
 
     #
     # load MGI snp to marker relationships

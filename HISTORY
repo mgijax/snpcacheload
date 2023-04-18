@@ -1,15 +1,19 @@
-TAG: snpcacheload-6-0-22-3
-TAG: snpcacheload-6-0-22-2
-DATE: 04/17/2023
+TAG: snpcacheload-6-0-22-4
+DATE: 04/18/2023
 STAFF: sc
-CHANGES: IN_SYNC=yes
-for some reason 6-0-17-1 has IN_SYNC=yes, but when you checkout
-master IN_SYNC=no, so I fixed this.
+6-0-22-1 has current correct code - master is not correct, maybe
+a push was missed when merging wts2-837 branch to trunk
+This tag restores master to 6-0-22-1 code
 
-TAG: snpcacheload-6-0-17-1
-DATE: 05/11/2021
+TAG: snpcacheload-6-0-22-1
+DATE: 10/03/2022
 STAFF: sc
-CHANGES: TR13349 Build39
+wts2-837 remap snps merge to trunk
+
+TAG: snpcacheload-wts2-837-1
+DATE: 09/08/2022
+STAFF: sc
+CHANGES: WTS2-837 remap snps
 
 TAG: snpcacheload-6-0-16-4
 TAG: snpcacheload-6-0-16-3
