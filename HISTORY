@@ -1,7 +1,9 @@
+TAG: snpcacheload-6-0-22-6
 TAG: snpcacheload-6-0-22-5
 DATE: 11/07/2023
 STAFF: lec
 wts2-1323/fl3-619/other lib_py_postgres produts/db.setReturnAsSybase → db.setReturnAsMGI
+remove: SNP_BACKUP_LOCALPATH from Configuration.default
 
 TAG: snpcacheload-6-0-22-4
 DATE: 04/18/2023
