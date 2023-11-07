@@ -117,7 +117,7 @@ def initialize():
     #  Set up a connection to the mgd database.
     #
     db.useOneConnection(1)
-    db.setReturnAsSybase(False)
+    db.setReturnAsMGI(False)
     results = db.sql('''
         SELECT t._Term_key
         FROM VOC_Term t

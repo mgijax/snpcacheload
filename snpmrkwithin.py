@@ -158,7 +158,7 @@ def initialize():
     #  Set up a connection to the mgd database.
     #
     db.useOneConnection(1)
-    db.setReturnAsSybase(False)
+    db.setReturnAsMGI(False)
 
     #
     #  Create a lookup for within* function class terms.
