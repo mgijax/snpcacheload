@@ -1,3 +1,11 @@
+TAG: snpcacheload-6-0-23-?
+DATE: 05/28/2024
+STAFF: lec
+fl2e/fl2-869/Reduce Max "within distance of" SNP-to-marker associations from 10kb to 2kb
+change: MARKER_PAD  from 10000 to 2000, on this line:
+MARKER_PAD      = 2000
+#       modified:   snpmrkwithin.py
+
 TAG: snpcacheload-6-0-22-6
 TAG: snpcacheload-6-0-22-5
 DATE: 11/07/2023

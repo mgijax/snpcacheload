@@ -84,7 +84,7 @@ NULL = ''
 WITHIN_COORD_TERM = 'within coordinates of'
 WITHIN_KB_TERM = 'within distance of'
 
-MARKER_PAD      = 10000	# max number of BP away a SNP can be FROM a
+MARKER_PAD      = 2000	# max number of BP away a SNP can be FROM a
                         # marker to compute a SNP-marker association
 
 # max number of SNPs in chr region to process at at time
