@@ -8,18 +8,8 @@
 #	. copy & unzip each Alliance vep/vcf to the /data/loads/mgi/snpcacheload/output folder
 #	. sort & uniq the file -> chr.tsv
 #
-# Run the snpmrkalliance.py (which is a symlink to snpmrkwithin.py
-# This will generate 1 SNP_ConsensusSnp_Marker_Alliance.bcp.${chr} per chromosome
-# The Alliance bcps will remain static until the next time this script is run
-# Truncate SNP_ConsensusSnp_Marker_Alliance
-# Drop index and primary key
-# Load the Alliance bcps into SNP_ConsensusSnp_Marker_Alliance
-# Create index and primary key
-#
-# select max(_consensussnp_marker_key) from SNP_ConsensusSnp_Marker
-# Configuration:SNP_ALLIANCE_LAST_KEY
-# set to the last _consensussnp_marker_key
-# the snpmarker.csh must delete all records *after* the Alliance SNPs
+# The TSV files remain static until this is run again.
+# This script should be run again if a new Alliance vep/vcf file is mirroed via mirror_wget/alliancegenome.org.variants
 #
 
 cd `dirname $0` 

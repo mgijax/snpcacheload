@@ -32,6 +32,3 @@ if [ ! -d ${ARCHIVEDIR} ]
 then
         mkdir -p ${ARCHIVEDIR}
 fi
-
-rm -rf snpmrkalliance.py
-ln -s snpmrkwithin.py snpmrkalliance.py
