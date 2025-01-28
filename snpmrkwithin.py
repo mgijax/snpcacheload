@@ -69,9 +69,6 @@ SNP_NOT_WITHIN  = 'Warning: SNP %s not within %s +/- bp of marker %s,s,%s,%s ' +
 # max number of BP away a SNP can be from a marker to compute a SNP-marker association
 MARKER_PAD = 2000	
 
-# max number of SNPs in chr region to process at at time
-MAX_NUMBER_SNPS = int(os.environ['MAX_QUERY_BATCH'])
-
 # bcp file name prefix
 snpFile = None
 # alliance input file name
@@ -188,11 +185,9 @@ def process():
     return
 
 # Purpose: Process all SNPs within the startCoord-endCoord range on the given
-#	   chr - by using binary search to find sub-regions with a small
-#	   enough number of SNPs (< MAX_NUMBER_SNPS) to process at a time
+#	   chr - by using binary search to find sub-regions to process at a time
 #	   "Process" means: Create a bcp file with annotations for SNP/marker
-#	   pairs where the SNP is within 2 kb of the marker and there is
-#	   no existing annotation for the SNP/marker.
+#	   pairs where the SNP is within 2 kb of the marker and there is no existing annotation for the SNP/marker.
 # Returns: Nothing
 # Assumes: startCoord and endCoord are integers
 # Effects: Outputs to BCP file represented by fpSnpBCP
@@ -202,16 +197,6 @@ def binProcess(chr, startCoord, endCoord):
     global SNPlist
 
     print('binProcess: SNPlist Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
-
-    results = db.sql('''
-                select COUNT(_ConsensusSnp_key) as snpCount 
-                from SNP_Coord_Cache 
-                where chromosome = '%s'
-                and startCoordinate BETWEEN %s and %s
-    ''' % (chr, startCoord, endCoord), 'auto')
-    snpCount = results[0]['snpCount']
-    print('Total snp coordinates between coord %s and %s is %s' % (startCoord, endCoord, snpCount))
-    sys.stdout.flush()
 
     # query to fill SNPlist
     SNPlist = db.sql('''
@@ -224,6 +209,7 @@ def binProcess(chr, startCoord, endCoord):
         order by sc.startCoordinate
         ''' % (chr, startCoord, endCoord), 'auto')
 
+    print('Total snp coordinates between coord %s and %s is %s' % (startCoord, endCoord, str(len(SNPlist)))
     print('SNPlist Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  time.localtime(time.time())))
     sys.stdout.flush()
     processSNPregion(fpSnpBCP, chr, startCoord, endCoord)
