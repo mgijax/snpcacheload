@@ -20,79 +20,64 @@ fi
 
 # output dir
 CACHEDIR=${DATALOADSOUTPUT}/mgi/snpcacheload
-
 # data directory
 CACHEDATADIR=${CACHEDIR}/output
-
 # logs directory
 CACHELOGSDIR=${CACHEDIR}/logs
-
 # directory in which to archive the contents of output and logs directories
 ARCHIVEDIR=${CACHEDIR}/archive
-
 export CACHEDIR CACHEDATADIR CACHELOGSDIR ARCHIVEDIR
 
 # dbsnpload snpmarker cache load log 
 SNPMARKER_LOG=${CACHELOGSDIR}/snpmarker.log
-
 # weekly snpmarker wrapper log
 SNPMARKER_WKLY_LOG=${CACHELOGSDIR}/snpmarker_weekly.log
-
 export SNPMARKER_LOG SNPMARKER_WKLY_LOG
 
 # mgd refseq _LogicalDB_key
 REFSEQ_LOGICALDB_KEY=27
-
 # mgd SNP_ConsensusSnp_Marker _MGIType_key
 SNPMRKR_MGITYPE_KEY=32
-
 # mgd refSNP _LogicalDB_key
 CS_LOGICALDB_KEY=73
-
 # mgd SNP_ConsensusSnp _LogicalDB_key
 CS_MGITYPE_KEY=30
-
 export REFSEQ_LOGICALDB_KEY SNPMRKR_MGITYPE_KEY CS_LOGICALDB_KEY CS_MGITYPE_KEY
 
 # mgd EntrezGene _LogicalDB_key
 EG_LOGICALDB_KEY=55
-
 # mgd MRK_Marker _MGIType_key
 MRKR_MGITYPE_KEY=2
-
 export EG_LOGICALDB_KEY MRKR_MGITYPE_KEY
 
 # snp table and bcp file names 
 ACC_TABLE=SNP_RefSeq_Accession
 ACC_FILE=${ACC_TABLE}.bcp
-
 export ACC_TABLE ACC_FILE
 
 TMP_FXN_TABLE=TMP_SNP_Marker_Fxn
 TMP_FXN_FILE=${TMP_FXN_TABLE}.bcp
-
 export TMP_FXN_TABLE TMP_FXN_FILE
 
 SNP_MRK_TABLE=SNP_ConsensusSnp_Marker
 SNP_MRK_FILE=${SNP_MRK_TABLE}.bcp
-SNP_MRK_WITHIN_FILE=${SNP_MRK_TABLE}_Within.bcp
-
-export SNP_MRK_TABLE SNP_MRK_FILE SNP_MRK_WITHIN_FILE
+export SNP_MRK_TABLE SNP_MRK_FILE
 
 MRKLOC_CACHETABLE=MRK_Location_Cache
 MRKLOC_CACHEFILE=${MRKLOC_CACHETABLE}.bcp
-
 export MRKLOC_CACHETABLE MRKLOC_CACHEFILE
-
-# max number of lines per bcp file to keep below 2G
-MAX_BCP_LINES=25000000 
 
 # max number of ConsensusSnp keys in a snpmrkwithin.py query batch
 MAX_QUERY_BATCH=100000
-
-export MAX_BCP_LINES MAX_QUERY_BATCH
+export MAX_QUERY_BATCH
 
 # Are dbSNP and MGI coordinates synchronized (same mouse genome build) ?
 IN_SYNC=yes
-
 export IN_SYNC
+
+# SNP Alliance
+SNP_ALLIANCE_INPUT="/data/downloads/download.alliancegenome.org/variants/7.4.0/MGI/"
+SNP_ALLIANCE_LOG=${CACHEDIR}/logs/snpalliance.log
+SNP_ALLIANCE_TSV=${CACHEDIR}/output/snpalliance.output
+export SNP_ALLIANCE_INPUT SNP_ALLIANCE_LOG SNP_ALLIANCE_TSV
+

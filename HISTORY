@@ -1,3 +1,13 @@
+TAG: snpcacheload-6-0-25-?
+DATE: 01/22/2025
+STAFF: lec
+e4g-127/Process Alliance File to Load SNP_ConsensusSnp_Marker
+mirror_wget
+#       new file:   snpalliance.py
+#       new file:   snpalliance.sh
+#       modified:   snpmarker.sh
+#       modified:   snpmrkwithin.py
+
 TAG: snpcacheload-6-0-24-1
 DATE: 06/05/2024
 STAFF: lec
