@@ -3,15 +3,12 @@
 #
 #  Purpose:
 #
-#  This script will identify all SNP/marker pairs where the SNP is located within 2 kb 
-#  of the marker A new upstream or downstream annotation is created, depending on the SNP/marker coordinates.
-#
 #  SNP Marker Alliance, Within Coordinates & Distance: snpmrkwithin.py
 #  . Truncate SNP_ConsensusSnp_Marker
 #  . Find set of SNP keys (SNP_ConsensusSnp)
 #  . If SNP id exists in Alliance TSV, then Alliance function classification : may be > 1
-#  . Else if Within
-#  . Else use Distance 
+#  . Else if SNP is within the coordinates of the marker, then use it
+#  . Else use Distance within 2kb of the marker
 # 
 #  The snpmarkwithin.py is run weekly as part of the Production Pipeline:
 #  Jenkins Tasks: http://bhmgijenkins01lp.jax.org:10082/job/Pipeline/job/Step 02 - SNP Cache Load/
@@ -112,7 +109,6 @@ def initialize():
     # The following globals will be initialized
     #
     global fxnLookup   # create lookup to resolve function class string to key
-    global primaryKey
 
     print('Perform initialization')
     sys.stdout.flush()
@@ -129,12 +125,9 @@ def initialize():
     for r in results:
         fxnLookup[r['term']] = r['_term_key']
 
-    #else:
-    #    primaryKey = 1
-
     return
 
-# Purpose: Create a bcp file with annotations for SNP/marker pairs where the SNP is within 2 kb of the marker
+# Purpose: For each Chromosome, create a bcp file with annotations for SNP/marker pairs where the SNP is within 2 kb of the marker
 # Returns: Nothing
 # Assumes: Nothing
 # Effects: Queries a database, Outputs to BCP file represented by fpSnpBCP
@@ -143,6 +136,7 @@ def initialize():
 def process():
     #
     #  Process one chromosome at a time to break up the size of the results set.
+    #   Create one bcp file per chromosome
     #
     global snpAllianceFile  # get alliance input file
     global fpSnpBCP
@@ -161,7 +155,6 @@ def process():
             fpSnpBCP = open("%s" % (snpFile),'w')
         except:
             sys.stderr.write('Cannot Read SNP Alliance File: %s\n' % snpAllianceFile)
-            sys.exit(1)
             sys.stderr.write('Cannot Write SNP File: %s\n' % snpFile)
             sys.exit(1)
             
@@ -300,7 +293,7 @@ def processSNPregion(fp, chr, startCoord, endCoord):
         #	- populated by SQL query
         #	- For now, order is unimportant. Could order by increasing
         #	  endCoordinate, then as we process markers, we could
-        #	  increase the start coord of the binary search for SNPs...
+        #	  increase the start coord of the binary search for SNPs.
         #
 
         print('Marker Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
@@ -450,8 +443,7 @@ def processSNPmarkerPair(fp,      # file pointer of output file
 def getKBTerm(snpLoc, markerStart, markerEnd, markerStrand):
 
     #
-    #  If the SNP is not within MARKER_PAD distance from the marker,
-    #  don't check any further.
+    #  If the SNP is not within MARKER_PAD distance from the marker, don't check any further.
     #
     if snpLoc < (markerStart - MARKER_PAD) or snpLoc > (markerEnd + MARKER_PAD):
         return []
@@ -548,15 +540,6 @@ def listBinarySearch(list,	# the list to search, sorted by keyField
 #
 
 initialize()
-
-#scriptName = os.path.basename(sys.argv[0])
-#if scriptName == "snpmrkwithin.py":
-#    RUN_ALLIANCE = 0
-#elif scriptName == "snpmrkalliance.py":
-#    RUN_ALLIANCE = 1
-#else:
-#    sys.exit(0)
-
 process()
 sys.exit(0)
 
