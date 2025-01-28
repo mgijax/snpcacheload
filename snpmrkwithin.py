@@ -61,13 +61,15 @@ db.setTrace(True)
 DL = '|'
 CRT = '\n'
 
-RUN_ALLIANCE = 0
 WITHIN_COORD_TERM = 'within coordinates of'
 WITHIN_KB_TERM = 'within distance of'
 SNP_NOT_WITHIN  = 'Warning: SNP %s not within %s +/- bp of marker %s,s,%s,%s ' + '- this should never happen'
 
 # max number of BP away a SNP can be from a marker to compute a SNP-marker association
 MARKER_PAD = 2000	
+
+# SNP write format
+snpWrite = '%s|%s|%s|%s|%s|||||%s|%s|\n'
 
 # bcp file name prefix
 snpFile = None
@@ -111,7 +113,7 @@ def initialize():
     sys.stdout.flush()
 
     #
-    #  Create a lookup for within* function class terms.
+    #  Create a lookup for within* function class terms
     #
     results = db.sql('''
             select t._term_key, t.term 
@@ -317,16 +319,14 @@ def processSNPregion(fp, chr, startCoord, endCoord):
         prevSnpIdx = 0			    # index of SNP found on prev iteration (start binary search from there)
 
         for marker in Markers:
-            markerKey   = marker['_marker_key']
             markerStart = marker['markerStart']
-            markerEnd   = marker['markerEnd']
+            markerEnd = marker['markerEnd']
 
             # use binary search to find the index in SNPlist of the farthest "right" SNP to consider for this marker
             snpIdx = listBinarySearch(SNPlist, markerEnd+MARKER_PAD, prevSnpIdx, idxLastSnp)
 
             # iterate backward through the SNPs from snpIdx and process SNP-Marker pairs.
             # (deal w/ boundary condition, no SNP is within range?)
-
             i = snpIdx
             leftmostCoord = markerStart-MARKER_PAD
             while (i >= 0 and SNPlist[i]['startCoordinate'] >= leftmostCoord):
@@ -356,13 +356,9 @@ def processSNPmarkerPair(fp,      # file pointer of output file
     # next available _SNP_ConsensusSnp_Marker_key
     global primaryKey
 
-    snpWrite = '%s|%s|%s|%s|%s|||||%s|%s|\n'
-
-    markerKey    = marker['_marker_key']
-    markerStart  = marker['markerStart']
-    markerEnd    = marker['markerEnd']
+    markerStart = marker['markerStart']
+    markerEnd = marker['markerEnd']
     markerStrand = marker['markerStrand']
-
     snpLoc = snp['startCoordinate']
     snpKey = snp['_consensussnp_key']
     coordCacheKey = snp['_coord_cache_key']
@@ -372,34 +368,35 @@ def processSNPmarkerPair(fp,      # file pointer of output file
 
     #
     # if SNP exists in the Alliane file
+    #   then set the fxnKey from the allianceLookup
+    #   there may be > 1 fxnKey
     #
     if snpId in allianceLookup:
-        sys.stdout.flush()
         dirDist = ['not applicable', 0]
         direction = dirDist[0]
         distance = int(dirDist[1])
         for f in allianceLookup[snpId]:
             fxnKey = f[4]
-            sys.stdout.flush()
             fp.write(snpWrite % (primaryKey, snpKey, markerKey, fxnKey, coordCacheKey, distance, direction))
             primaryKey = primaryKey + 1
+        sys.stdout.flush()
         return
 
     #
     # else the SNP is located within the coordinates of the marker
     #
     elif snpLoc >= markerStart and snpLoc <= markerEnd:
-        sys.stdout.flush()
         fxnKey = fxnLookup[WITHIN_COORD_TERM]
         dirDist = ['not applicable', 0]
+        sys.stdout.flush()
     
     #
     # the SNP must be located within one of the pre-defined "KB" distances from the marker. 
     # Check each distance (starting with the small range) to see which one it is.
     #
     else:
-        sys.stdout.flush()
         dirDist = getKBTerm(snpLoc, markerStart, markerEnd, markerStrand)
+        sys.stdout.flush()
     
     if dirDist == []:
         print(SNP_NOT_WITHIN % (snp, MARKER_PAD, marker, snpLoc, markerStart, markerEnd))
@@ -413,14 +410,14 @@ def processSNPmarkerPair(fp,      # file pointer of output file
         direction = dirDist[0]
         distance = int(dirDist[1])
 
-    sys.stdout.flush()
     fp.write(snpWrite % (primaryKey, snpKey, markerKey, fxnKey, coordCacheKey, distance, direction))
     primaryKey = primaryKey + 1
+    sys.stdout.flush()
     return
 
 # Purpose: Use the SNP/marker coordinates and marker strand to determine
 #          if the SNP is within a MARKER_PAD distance from the marker.
-#          If it is, the appropriate term is returned for the annotation.
+#          if it is, the appropriate term is returned for the annotation.
 # Returns: The term key or -1 (if the SNP is not within the distance)
 # Assumes: Nothing
 # Effects: Nothing
@@ -524,7 +521,6 @@ def listBinarySearch(list,	# the list to search, sorted by keyField
 #
 #  MAIN
 #
-
 initialize()
 process()
 sys.exit(0)
