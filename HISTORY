@@ -3,6 +3,8 @@ DATE: 01/22/2025
 STAFF: lec
 e4g-127/Process Alliance File to Load SNP_ConsensusSnp_Marker
 mirror_wget
+mgidbmigration/snpfunctionclass
+pgsnpdbschema
 #       new file:   snpalliance.py
 #       new file:   snpalliance.sh
 #       modified:   snpmarker.sh
