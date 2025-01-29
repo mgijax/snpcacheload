@@ -65,8 +65,8 @@ then
 fi
 
 cd ${CACHEDATADIR}
-${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_drop.object >> ${LOG} 2>&1
-${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${LOG} 2>&1
+${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
+${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
 ${SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object >> ${SNPMARKER_LOG} 2>&1
 date | tee -a ${SNPMARKER_LOG}
 echo "Loading SNP_ConsensusSnp_Marker by Chromosome"  | tee -a ${SNPMARKER_LOG}

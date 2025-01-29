@@ -109,7 +109,7 @@ def initialize():
     #
     global fxnLookup   # create lookup to resolve function class string to key
 
-    print('Perform initialization')
+    print('initialize(): perform initialization')
     sys.stdout.flush()
 
     #
@@ -144,10 +144,10 @@ def process():
 
     for chr in chrList:
 
-        print('\nChromosome:  %s' % (chr))
+        print('\nprocess(): chromosome: %s' % (chr))
 
         try:
-            print('Create Read/Write files')
+            print('process(): create read/write files')
             snpAllianceFile = os.environ['SNP_ALLIANCE_TSV'] + '.' + str(chr) + '.tsv'
             fpSnpAlliance = open("%s" % (snpAllianceFile),'r')
             snpFile = os.environ['CACHEDATADIR'] + '/' + os.environ['SNP_MRK_FILE'] + '.' + str(chr)
@@ -157,26 +157,25 @@ def process():
             sys.stderr.write('Cannot Write SNP File: %s\n' % snpFile)
             sys.exit(1)
             
-        print('Create Alliance Lookup')
+        print('process(): create Alliance lookup')
         allianceLookup = {}
         for line in fpSnpAlliance:
             tokens = line[:-1].split('|')
-            key = tokens[0]
+            key = tokens[0] + ':' + tokens[1]
             if key not in allianceLookup:
                 allianceLookup[key] = []
             allianceLookup[key].append(tokens)
-        print('Alliance Lookup: ' + str(len(allianceLookup)))
+        print('process(): Alliance lookup: ' + str(len(allianceLookup)))
         #print(allianceLookup)
 
-        print('Query for max SNP coordinate')
+        print('process(): query for max SNP coordinate')
         results = db.sql('''
                 select max(startCoordinate) as maxCoord 
                 from SNP_Coord_Cache 
                 where chromosome = '%s' 
                 ''' % (chr), 'auto')
         maxCoord = results[0]['maxCoord']
-        print('Max coord: %s' % (maxCoord))
-        print('Get SNP/marker pairs')
+        print('process(): max coord: %s' % (maxCoord))
         sys.stdout.flush()
         binProcess(chr, 1, maxCoord)
         sys.stdout.flush()
@@ -198,7 +197,8 @@ def process():
 def binProcess(chr, startCoord, endCoord):
     global SNPlist
 
-    print('binProcess: SNPlist Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+    print('binProcess(): SNPlist query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+    sys.stdout.flush()
 
     # query to fill SNPlist
     SNPlist = db.sql('''
@@ -211,8 +211,8 @@ def binProcess(chr, startCoord, endCoord):
         order by sc.startCoordinate
         ''' % (chr, startCoord, endCoord), 'auto')
 
-    print('Total snp coordinates between coord %s and %s is %s' % (startCoord, endCoord, str(len(SNPlist)))
-    print('SNPlist Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  time.localtime(time.time())))
+    print('binProcess(): total snp coordinates between coord %s and %s is %s' % (startCoord, endCoord, str(len(SNPlist))))
+    print('binProcess(): SNPlist query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y",  time.localtime(time.time())))
     sys.stdout.flush()
     processSNPregion(fpSnpBCP, chr, startCoord, endCoord)
 
@@ -284,17 +284,18 @@ def processSNPregion(fp, chr, startCoord, endCoord):
         #	  increase the start coord of the binary search for SNPs.
         #
 
-        print('Marker Query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        print('processSNPregion(): marker query start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
         sys.stdout.flush()
 
         # query to fill Markers
         # exclude: withdrawn markers, marker type QTL and Cytogenetic, feature type heritable phenotypic
         Markers = db.sql('''
-                select mc._Marker_key, 
+                select a.accid as markerId,
+                       mc._marker_key, 
                        mc.startCoordinate as markerStart,
                        mc.endCoordinate as markerEnd, 
                        mc.strand as markerStrand 
-                from MRK_Location_Cache mc, MRK_Marker m, MRK_MCV_Cache mcv
+                from MRK_Location_Cache mc, MRK_Marker m, MRK_MCV_Cache mcv, ACC_Accession a
                 where mc._Marker_Type_key not in (3, 6) 
                 and mc._Organism_key = 1
                 and mc.genomicchromosome = '%s' 
@@ -305,15 +306,19 @@ def processSNPregion(fp, chr, startCoord, endCoord):
                 and m._Marker_key = mcv._Marker_key
                 and mcv.qualifier = 'D'
                 and mcv._mcvTerm_key != 6238170
+                and mc._Marker_key = a._Object_key
+                and a._MGIType_key = 2
+                and a._LogicalDB_key = 1
+                and a.preferred = 1
                 ''' % (chr, startCoord-MARKER_PAD, endCoord+MARKER_PAD), 'auto')
 
-        print('Marker Query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        print('processSNPregion(): marker query end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
         sys.stdout.flush()
 
         #
         #  Process each SNP on SNPlist
         #
-        print('Process SNPlist start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+        print('processSNPregion(): process SNPlist start time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
         sys.stdout.flush()
         idxLastSnp = len(SNPlist)-1	# index of last SNP in SNPlist
         prevSnpIdx = 0			    # index of SNP found on prev iteration (start binary search from there)
@@ -334,7 +339,7 @@ def processSNPregion(fp, chr, startCoord, endCoord):
                 i = i-1
 
         # prevSnpIdx = snpIdx end SNP loop
-        print('Process SNPlist end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))	
+        print('processSNPregion(): process SNPlist end time: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))	
         sys.stdout.flush()
         return
 
@@ -356,6 +361,8 @@ def processSNPmarkerPair(fp,      # file pointer of output file
     # next available _SNP_ConsensusSnp_Marker_key
     global primaryKey
 
+    markerId = marker['markerId']
+    markerKey = marker['_marker_key']
     markerStart = marker['markerStart']
     markerEnd = marker['markerEnd']
     markerStrand = marker['markerStrand']
@@ -371,11 +378,12 @@ def processSNPmarkerPair(fp,      # file pointer of output file
     #   then set the fxnKey from the allianceLookup
     #   there may be > 1 fxnKey
     #
-    if snpId in allianceLookup:
+    allianceKey = snpId + ':' + markerId
+    if allianceKey in allianceLookup:
         dirDist = ['not applicable', 0]
         direction = dirDist[0]
         distance = int(dirDist[1])
-        for f in allianceLookup[snpId]:
+        for f in allianceLookup[allianceKey]:
             fxnKey = f[4]
             fp.write(snpWrite % (primaryKey, snpKey, markerKey, fxnKey, coordCacheKey, distance, direction))
             primaryKey = primaryKey + 1
