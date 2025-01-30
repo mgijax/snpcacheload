@@ -205,7 +205,7 @@ def binProcess(chr, startCoord, endCoord):
         select sc._ConsensusSnp_key, sc._Coord_Cache_key, sc.startCoordinate, a.accid
         from SNP_Coord_Cache sc, SNP_Accession a
         where sc.chromosome = '%s' 
-        and sc.startCoordinate BETWEEN %s and %s 
+        and sc.startCoordinate between %s and %s 
         and sc._consensussnp_key = a._object_key
         and a._mgitype_key = 30
         order by sc.startCoordinate
