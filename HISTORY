@@ -5,6 +5,7 @@ e4g-127/Process Alliance File to Load SNP_ConsensusSnp_Marker
 mirror_wget
 mgidbmigration/snpfunctionclass
 pgsnpdbschema
+genemodelload : remove LASTRUN on SNP server
 #       new file:   snpalliance.py
 #       new file:   snpalliance.sh
 #       modified:   snpmarker.sh
