@@ -10,30 +10,16 @@
 #
 # Usage:  snpmarker.sh
 #
+# Since this runs on a server that does *not* have radar installed,
+# this script cannot use the radar job stream functions.
+#
+# This is run as part of the Pipeline and uses LASTRUN.
+#
 # History
 #
-# lec	01/21/2013
-#	- TR10788/testing on linux server (TR11248 scrum project)
-#
-# sc	04/20/2012 
-#	- TR10788
-#	- updated for postgres, this includes removing
-#	   - rm bcp in/out of mgd..MRK_Location_Cache to snp..MRK_Location_Cache
-#	   - bcpin.csh instead of bcpin.csh
-#	   - rm all sybase specific stuff 
-# lec	09/01/2011 
-#	- TR10805
-#	- bcpout/in for MRK_Location_Cache uses default bcp settings
-#	  that is, do *not* use NL/DL
-#	- make sure the MRK_Location_Cache is synced up with 
-#	  mgd..MRK_Location_Cache
-#
-# sc    07/27/2006 - converted to bourne shell
-# lec   06/30/2006 - modified for mgiconfig
-# sc    03/2006 - convert to snp database add load of snp MRK_Location_Cache
-# sc    01/2006 - process multiple snpmrkwithin.bcp files
-# dbm   09/28/2005 - Added snpmrklocus.py & snpmrkwithin.py
-# sc	08/17/2005 - created
+# lec	01/31/2025
+#	e4g-127/Process Alliance File to Load SNP_ConsensusSnp_Marker
+#	snpmarker.sh previous version is saved snpmarker.sh.bak
 #
 
 #
