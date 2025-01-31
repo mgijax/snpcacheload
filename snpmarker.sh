@@ -52,10 +52,24 @@ rm -rf ${SNPMARKER_LOG}
 touch ${SNPMARKER_LOG}
 
 #
+# If the checked-file exists and is more recent than the last checked-file, the load does not need to be run.
+# The checked-file : ${CACHEDATADIR}/snpalliance.output.Y.tsv
+#
+LASTRUN_FILE=${CACHEDATADIR}/lastrun
+if [ -f ${LASTRUN_FILE} ]
+then
+    if test ${LASTRUN_FILE} -nt ${CACHEDATADIR}/snpalliance.output.Y.tsv
+    then
+        echo "Output file snpalliance.output.Y.tsv has not been updated - skipping load" | tee -a ${SNPMARKER_LOG}
+        exit 0
+    fi
+fi
+
+#
 # Load MGI snp/marker distance relationships
 # 
 date | tee -a ${SNPMARKER_LOG}
-echo "Calling snpmrkwithin.py to create bcp files" | tee -a ${SNPMARKER_LOG}
+echo "Processing snpmrkwithin.py to create SNP_ConsensusSnp_Marker bcp files" | tee -a ${SNPMARKER_LOG}
 ${PYTHON} ${SNPCACHELOAD}/snpmrkwithin.py >> ${SNPMARKER_LOG} 2>&1
 STAT=$?
 if [ ${STAT} -ne 0 ]
@@ -88,8 +102,22 @@ done
 # re-create keys at the end
 #
 date | tee -a ${SNPMARKER_LOG}
-echo "Create index on SNP_ConsensusSnp_Marker"  | tee -a ${SNPMARKER_LOG}
+echo "Create primary key & index on SNP_ConsensusSnp_Marker"  | tee -a ${SNPMARKER_LOG}
 ${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
 ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_create.object >> ${SNPMARKER_LOG} 2>&1
+STAT=$?
+if [ ${STAT} -ne 0 ]
+then
+	echo "${SNPCACHELOAD}/snpmrkwithin.py failed" | tee -a ${SNPMARKER_LOG}
+	exit 1
+fi
 date | tee -a ${SNPMARKER_LOG}
+
+#
+# Touch the "lastrun" file to note when the load was run.
+#
+if [ ${STAT} = 0 ]
+then
+    touch ${LASTRUN_FILE}
+fi
 

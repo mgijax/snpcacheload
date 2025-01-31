@@ -80,4 +80,3 @@ SNP_ALLIANCE_INPUT="/data/downloads/download.alliancegenome.org/variants/7.4.0/M
 SNP_ALLIANCE_LOG=${CACHEDIR}/logs/snpalliance.log
 SNP_ALLIANCE_TSV=${CACHEDIR}/output/snpalliance.output
 export SNP_ALLIANCE_INPUT SNP_ALLIANCE_LOG SNP_ALLIANCE_TSV
-
