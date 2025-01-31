@@ -35,12 +35,6 @@ LOG=${SNP_ALLIANCE_LOG}
 rm -rf ${LOG}
 >>${LOG}
 
-# duplicate index ; can be removed after the first SNP Alliance run
-cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0 | tee -a $LOG
-drop index if exists snp.SNP_ConsensusSnp_Marker_idx_consensussnp_key;
-create index SNP_ConsensusSnp_idx__ConsensusSnp_key on snp.SNP_ConsensusSnp (_ConsensusSnp_key);
-EOSQL
-
 date >> ${LOG} 2>&1
 echo "Process SNP Alliance Feed TSV files"  >> ${LOG} 2>&1
 ${PYTHON} ${SNPCACHELOAD}/snpalliance.py >> ${LOG} 2>&1
