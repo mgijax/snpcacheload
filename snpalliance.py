@@ -1,12 +1,17 @@
 #
 # Input: Alliance Feed
-# Output:  SNP_ALLIANCE_TSV
+# Output:  SNP_ALLIANCE_TSV, 1 per Chromosome
 #
 #   SNP ID
 #   MGI ID
 #   Symbol
 #   SNP Term
+#   Term key
 #   MGD Term
+#
+# Create SNP Funcation Class lookup (fxdLookup) using the MGI Translation
+# For each VCF file (1 per Chromosome)
+#   create a corresponding TSV
 #
  
 import sys 

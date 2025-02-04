@@ -1,11 +1,11 @@
 #!/bin/sh
 
 #
-# This script is a wrapper around the process that generates the Alliance feed output file.
+# This script is a wrapper around the process that generates the Alliance feed TSV file.
 #     snpalliance.sh 
 #
 # For each chromosome
-#	. copy & unzip each Alliance vep/vcf to the /data/loads/mgi/snpcacheload/output folder
+#	. copy each Alliance vep/vcf to the /data/loads/mgi/snpcacheload/output folder
 #	. sort & uniq the file -> chr.tsv
 #
 # The TSV files remain static until this is run again.
