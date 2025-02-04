@@ -2,8 +2,8 @@ TAG: snpcacheload-6-0-25-?
 DATE: 01/22/2025
 STAFF: lec
 e4g-127/Process Alliance File to Load SNP_ConsensusSnp_Marker
-mirror_wget
-mgidbmigration/snpfunctionclass
+mirror_wget-6-0-25-1	: 02/04/2025
+mgidbmigration-6-0-25-4 : 01/31/2025
 pgsnpdbschema
 genemodelload : remove LASTRUN on SNP server
 #       new file:   snpalliance.py
