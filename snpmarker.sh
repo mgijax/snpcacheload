@@ -32,7 +32,7 @@ DL="|"
 # name of the snp schema
 SCHEMA='snp'
 
-CONFIG_LOAD=`pwd`/Configuration
+CONFIG_LOAD=${SNPCACHELOAD}/Configuration
 . ${CONFIG_LOAD}
 rm -rf ${SNPMARKER_LOG}
 touch ${SNPMARKER_LOG}
