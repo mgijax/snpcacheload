@@ -10,6 +10,7 @@
 #
 # The TSV files remain static until this is run again.
 # This script should be run again if a new Alliance vep/vcf file is mirroed via mirror_wget/alliancegenome.org.variants
+# This script needs to run on the SNP server:  bhmgidb05ld, bhmgidb03lp
 #
 
 cd `dirname $0` 
