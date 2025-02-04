@@ -48,17 +48,3 @@ rm -rf ${i}
 done
 date >> ${LOG} 2>&1
 
-echo "Tar the TSV files and copy to proper server" | tee -a ${LOG}
-rm -rf ${CACHEDIR}/allianceTSV.tar | tee -a ${LOG}
-tar -cvf ../allianceTSV.tar *tsv | tee -a ${LOG}
-cd ${CACHEDIR}
-if [ "`uname -n | cut -d'.' -f1`" = "bhmgiapp01" ]
-then
-  SNP_SERVER=bhmgidb03lp.jax.org
-else
-  SNP_SERVER=bhmgidb05ld.jax.org
-fi
-echo $SNP_SERVER | tee -a ${LOG}
-ls -l ${CACHEDIR}/allianceTSV.tar | tee -a ${LOG}
-scp -p ${CACHEDIR}/allianceTSV.tar ${SNP_SERVER}:${CACHEDIR} | tee -a ${LOG}
-
