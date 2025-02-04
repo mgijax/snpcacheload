@@ -65,7 +65,7 @@ then
 fi
 
 #
-# drop foreign keys & indexes
+# drop foreign keys & indexes, truncate SNP_ConsensusSnp_Marker
 #
 date | tee -a ${SNPMARKER_LOG}
 cd ${CACHEDATADIR}
