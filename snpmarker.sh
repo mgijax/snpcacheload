@@ -52,7 +52,7 @@ then
 fi
 
 #
-# Load MGI snp/marker distance relationships
+# create SNP_ConsensusSnp_Marker bcp files
 # 
 date | tee -a ${SNPMARKER_LOG}
 echo "Processing snpmrkwithin.py to create SNP_ConsensusSnp_Marker bcp files" | tee -a ${SNPMARKER_LOG}
@@ -64,10 +64,18 @@ then
 	exit 1
 fi
 
+#
+# drop foreign keys & indexes
+#
+date | tee -a ${SNPMARKER_LOG}
 cd ${CACHEDATADIR}
 ${SNP_DBSCHEMADIR}/key/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
 ${SNP_DBSCHEMADIR}/index/SNP_ConsensusSnp_Marker_drop.object >> ${SNPMARKER_LOG} 2>&1
 ${SNP_DBSCHEMADIR}/table/SNP_ConsensusSnp_Marker_truncate.object >> ${SNPMARKER_LOG} 2>&1
+
+#
+# load each bcp file into the SNP_ConsensusSnp_Marker table
+#
 date | tee -a ${SNPMARKER_LOG}
 echo "Loading SNP_ConsensusSnp_Marker by Chromosome"  | tee -a ${SNPMARKER_LOG}
 for i in `ls ${SNP_MRK_FILE}*`
@@ -85,7 +93,7 @@ do
 done
 
 #
-# re-create keys at the end
+# re-create foreign keys & indexes
 #
 date | tee -a ${SNPMARKER_LOG}
 echo "Create primary key & index on SNP_ConsensusSnp_Marker"  | tee -a ${SNPMARKER_LOG}
