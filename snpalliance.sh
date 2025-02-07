@@ -1,14 +1,14 @@
 #!/bin/sh
 
 #
-# This script is a wrapper around the process that generates the Alliance feed TSV file.
+# This script is a wrapper around the process that generates the Alliance TSV file.
 #     snpalliance.sh 
 #
 # For each chromosome
-#	. copy each Alliance vep/vcf to the /data/loads/mgi/snpcacheload/output folder
+#	. copy each Alliance vep/vcf ($SNP_ALLIANCE_INPUT) to the /data/loads/mgi/snpcacheload/output folder
 #	. sort & uniq the file -> chr.tsv
 #
-# The TSV files remain static until this is run again.
+# The TSV files remain static until this script is run again.
 # This script should be run again if a new Alliance vep/vcf file is mirroed via mirror_wget/alliancegenome.org.variants
 # This script needs to run on the SNP server:  bhmgidb05ld, bhmgidb03lp
 #
