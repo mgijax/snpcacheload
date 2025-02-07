@@ -7,6 +7,9 @@ mirror_wget-6-0-25-1	: 02/04/2025
 mgidbmigration-6-0-25-4 : 01/31/2025
 pgsnpdbschema
 genemodelload : remove LASTRUN on SNP server
+
+*****copy test/Pipeline/Step 2 & Step 3 to production/Pipeline*****
+
 #       new file:   snpalliance.py
 #       new file:   snpalliance.sh
 #       modified:   snpmarker.sh
