@@ -1,14 +1,10 @@
 #!/bin/sh
 #
-# Program: snpmarker.sh
-#
 # Purpose:
 #
 #       Script for loading SNP_ConsensusSnp_Marker table
 #       with dbSNP determined snp to marker associations
 #       and MGI determined snp to marker associations.
-#
-# Usage:  snpmarker.sh
 #
 # Since this runs on a server that does *not* have radar installed,
 # this script cannot use the radar job stream functions.
@@ -22,18 +18,21 @@
 #	snpmarker.sh previous version is saved snpmarker.sh.bak
 #
 
-#
-# Establish bcp file delimiters
-# 
-# bcp file row delimiter
-NL="\n"
-# bcp file column delimiter
-DL="|"
-# name of the snp schema
-SCHEMA='snp'
+cd `dirname $0` 
 
-CONFIG_LOAD=${SNPCACHELOAD}/Configuration
-. ${CONFIG_LOAD}
+COMMON_CONFIG=Configuration
+
+#
+# Make sure the common configuration file exists and source it. 
+#
+if [ -f ${COMMON_CONFIG} ]
+then
+    . ${COMMON_CONFIG}
+else
+    echo "Missing configuration file: ${COMMON_CONFIG}"
+    exit 1
+fi
+
 rm -rf ${SNPMARKER_LOG}
 touch ${SNPMARKER_LOG}
 
@@ -80,16 +79,16 @@ date | tee -a ${SNPMARKER_LOG}
 echo "Loading SNP_ConsensusSnp_Marker by Chromosome"  | tee -a ${SNPMARKER_LOG}
 for i in `ls ${SNP_MRK_FILE}*`
 do
-	date | tee -a ${SNPMARKER_LOG}
-	echo "Load ${i} into ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
-	echo "" | tee -a ${SNPMARKER_LOG}
-	${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} ${DL} 'notused' ${SCHEMA} >> ${SNPMARKER_LOG} 2>&1
-	STAT=$?
-	if [ ${STAT} -ne 0 ]
-	then
-	    echo "${PG_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
-	    exit 1
-	fi
+    date | tee -a ${SNPMARKER_LOG}
+    echo "Load ${i} into ${SNP_MRK_TABLE} table" | tee -a ${SNPMARKER_LOG}
+    echo "" | tee -a ${SNPMARKER_LOG}
+    ${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${SNP_MRK_TABLE} ${CACHEDATADIR} ${i} "|" "" snp >> ${SNPMARKER_LOG} 2>&1
+    STAT=$?
+    if [ ${STAT} -ne 0 ]
+    then
+    	echo "${PG_DBUTILS}/bin/bcpin.csh failed" | tee -a ${SNPMARKER_LOG}
+	exit 1
+    fi
 done
 
 #
