@@ -31,8 +31,7 @@
 #  Date        SE   Change Description
 #  ----------  ---  -------------------------------------------------------
 #  01/27/2025  lec  e4g-127/Process Alliance File to Load SNP_ConsensusSnp_Marker
-#  09/06/2022  sc   WTS2-837 remap snp coordinates (b39) 
-#       - not loading dbSNP marker associations, so removed use of excludeDict
+#  09/06/2022  sc   WTS2-837 remap snp coordinates (b39) ;not loading dbSNP marker associations, so removed use of excludeDict
 #  11/23/2015  sc   TR11937/dbSNP 142
 #  01/25/2013  lec  TR11248/10788 - conversion to postgres
 #  09/01/2011  lec  TR10805/add _Organism_key = 1
@@ -53,9 +52,6 @@ import loadlib
 import db
 
 db.setTrace(True)
-
-DL = '|'
-CRT = '\n'
 
 WITHIN_COORD_TERM = 'within coordinates of'
 WITHIN_KB_TERM = 'within distance of'
