@@ -1,5 +1,5 @@
-TAG: snpcacheload-6-0-25-?
-DATE: 01/22/2025
+TAG: snpcacheload-6-0-25-1
+DATE: 03/21/2025
 STAFF: lec
 e4g-127/Process Alliance File to Load SNP_ConsensusSnp_Marker
 ${MIRROR_WGET}/download_package alliancegenome.org.variants
