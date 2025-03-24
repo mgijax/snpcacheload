@@ -111,3 +111,5 @@ then
     touch ${LASTRUN_FILE}
 fi
 
+rm -rf ${CACHEDATADIR}/lastrun.dump
+
