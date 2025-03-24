@@ -43,11 +43,8 @@ touch ${SNPMARKER_LOG}
 LASTRUN_FILE=${CACHEDATADIR}/lastrun
 if [ -f ${LASTRUN_FILE} ]
 then
-    if test ${LASTRUN_FILE} -nt ${CACHEDATADIR}/snpalliance.output.Y.tsv
-    then
-        echo "Output file snpalliance.output.Y.tsv has not been updated - skipping load" | tee -a ${SNPMARKER_LOG}
+	echo "LASTRUN_FILE exists - skipping load" | tee -a ${SNPMARKER_LOG}
         exit 0
-    fi
 fi
 
 #
